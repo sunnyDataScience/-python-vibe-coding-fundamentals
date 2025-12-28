@@ -100,6 +100,58 @@ Unit 1 → Unit 2 → Unit 3 → Unit 4 → Unit 5 → Unit 6
 
 ---
 
+## 📊 AI 數據分析工作坊 | AI Data Analysis Workshop
+
+本課程包含進階的數據分析工作坊，協助您將 Python 應用於實際的資料科學任務。
+
+### 1. Pandas 數據分析工具教學
+位於 `AI 數據分析工作坊/pandas數據分析工具教學/`
+
+- **核心目標**：掌握 Python 最強大的數據處理庫 Pandas
+- **課程檔案**：
+  - `Pandas核心操作速成_講義.ipynb`：循序漸進的 Pandas 教學與練習
+  - `Pandas核心操作速成_參考解答.ipynb`：完整解答參考
+
+### 2. 實戰案例：零售數據視覺化
+根目錄下的 `visualize_retail.py` 展示了完整的數據分析流程：
+
+- **資料集**：Online Retail Dataset (`資料集/Online Retail/`)
+- **分析技術**：
+  - **RFM 分析**：利用 Recency, Frequency, Monetary 進行客戶分群
+  - **Cohort Analysis**：同類群組留存率分析
+- **視覺化結果**：產生 RFM 泡泡圖與留存率熱力圖 (儲存於 `charts/`)
+
+### 3. AI 輔助學習：分析師武器庫 (Prompt Engineering)
+位於 `AI 數據分析工作坊/上課用prompt/`
+
+本課程提供了一套經過驗證的 **Prompt 模板（分析師武器庫）**，協助您使用 AI (如 ChatGPT/Claude) 完成專業分析流程：
+
+1.  **階段一：問題定義** - 將模糊需求轉化為可量化的分析問題 (From Vague to Specific)
+2.  **階段二：策略選擇** - 選擇適合的分析框架與模型 (Choosing the Right Tool)
+3.  **階段三：圖表選用** - 數據視覺化與圖表設計建議 (Visualizing the Insight)
+4.  **階段四：報告生成** - 產出基於金字塔原則的專業分析報告 (From Insight to Action)
+
+相關文件：
+- `分析師武器庫.md`：完整的 Prompt 模板集合
+- `分析師武器庫_使用手冊.md`：詳細的使用指南與範例
+
+---
+
+## 📂 資料集資源
+
+本課程使用以下資料集進行實作：
+
+1.  **Online Retail Dataset** (零售數據)
+    - 位置：`資料集/Online Retail/`
+    - 用途：用於 `visualize_retail.py` 的 RFM 與 Cohort 分析實戰。
+
+2.  **SuperMarket Sales 2025** (超市銷售數據)
+    - 位置：`資料集/SuperMarket_Sales_2025/`
+    - 檔案：`Taiwan_SuperMarket_Sales_2025_Practice.csv`
+    - 用途：提供學員進行額外的數據探索與分析練習。
+
+---
+
 ## 🚀 如何使用本課程
 
 ### 步驟 1：準備環境
