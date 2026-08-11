@@ -21,8 +21,10 @@
 ├── 上課用prompt/                # ★ 專案核心：分析 Prompt 武器庫（六階段 00~05）
 │   └── 分析師武器庫.md           # ← 總索引，要理解分析流程從這裡讀
 ├── pandas數據分析工具教學/       # Pandas 講義 + 參考解答 (.ipynb)
-├── 資料集/                      # 課程資料集（見第 3 節契約）
-├── visualize_retail.py          # RFM + Cohort 視覺化範例（⚠️ 目前無法執行，見第 7 節）
+├── 資料集/                      # 課程資料集（見第 3 節契約）— 唯讀，不要修改
+├── scripts/                     # 可重跑的分析腳本
+│   └── visualize_retail.py      # RFM + Cohort 參考實作（見第 7 節）
+├── charts/                      # 圖表產出
 └── README.md
 ```
 
@@ -187,16 +189,31 @@ plt.rcParams["axes.unicode_minus"] = False
 
 ---
 
-## 7. 已知問題（不要照抄這裡面的寫法）
+## 7. 參考實作：`scripts/visualize_retail.py`
 
-**`visualize_retail.py` 目前無法執行**，三個原因：
+**這支腳本是本專案的程式碼範本。** 寫新的分析腳本時照它的結構走。
 
-1. 第 14 行寫死 Windows 絕對路徑 `d:\python_workspace\github\...`
-2. 讀的 `online_retail_merged.csv` **不存在**（`資料集/Online Retail/` 只有兩個分年檔）
-3. 用 `encoding="ISO-8859-1"` 讀 BOM 檔，第一欄名會壞掉；且 `Microsoft JhengHei` 在 Linux 上沒有
+```bash
+python scripts/visualize_retail.py     # 從專案根目錄或任何目錄執行皆可
+```
 
-這支檔案在 README 中被當作範例引用，但**它的寫法不是本專案的範本**。
-需要 RFM / Cohort 參考實作時，依第 3.1 節的清洗流程重寫，不要複製它的 I/O 與字型設定。
+它示範了本檔要求的每一件事：
+
+| 規範 | 在腳本中的做法 |
+| :--- | :--- |
+| 路徑不寫死 | `PROJECT_ROOT = Path(__file__).resolve().parent.parent`，從任何 cwd 執行都對 |
+| 正確讀檔 | `encoding="utf-8-sig"`，並用 `DEDUP_KEYS` 處理兩檔重疊期的重複交易 |
+| 清洗留紀錄 | `clean_for_customer_analysis()` 印出每一步的剔除列數、佔比、理由與最終保留率 |
+| 交付前驗證 | `verify_rfm()` 用 `assert` 檢查分群完整性、營收加總、並以第二種算法交叉驗算 |
+| 中文字型 | `setup_chinese_font()` 依序疊上系統實際安裝的字型，讓 matplotlib 逐字後備 |
+| 產出落地 | 圖存到 `charts/`，腳本放 `scripts/`，原始資料唯讀 |
+
+> 💡 字型那段有個容易踩的坑：`Droid Sans Fallback` 有中文但**沒有英文與數字**，
+> 單獨指定它會讓座標軸數字整排消失。所以要給的是一整串後備清單，不是單一字型名。
+
+**歷史備註**：這支腳本原本放在專案根目錄且無法執行（寫死 Windows 絕對路徑、
+讀取不存在的 `online_retail_merged.csv`、用 `ISO-8859-1` 讀 BOM 檔導致首欄名損壞、
+指定 Linux 上不存在的 `Microsoft JhengHei`）。已於 2026-08 重寫並移入 `scripts/`。
 
 ---
 
