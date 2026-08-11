@@ -289,7 +289,8 @@ ls .agents/skills/*/SKILL.md 2>&1
 沒出現時最常見的原因是 `SKILL.md` frontmatter 缺 `description` —— 那是必填欄位。
 
 > `agy` **不讀 `.claude/skills/`**。本 repo 的 Claude Code skills 要能在 Antigravity 用，
-> 必須落在 `.agents/skills/`。移植差異見 `PORTING.md`。
+> 必須落在 `.agents/skills/`。
+> ⚠️ 移植差異的 `PORTING.md` 尚未納入本 repo（與 `.agents/` 軌一併待補）。
 
 ### 4.3 其他可選的活體檢查
 
@@ -389,8 +390,15 @@ grep -n -A1 "Added by Antigravity CLI installer" ~/.bashrc ~/.profile ~/.zshrc 2
 
 ## 下一步
 
-裝完 `agy`、確認 `/skills` 讀得到 `.agents/skills/` 之後，讀
-[`COMPONENTS.md`](./COMPONENTS.md)（元件責任與選用時機）與
-[`PORTING.md`](./PORTING.md)（`.claude/` → `.agents/` 的移植陷阱），再回
-[`README.md`](./README.md) 挑路線。完整實戰迴圈是
-`/grill-with-docs → /to-spec → /to-tickets → /implement`。
+裝完 `agy` 之後：
+
+1. **學指令與 `.agents` 設定** → [`CLI_GUIDE.md`](./CLI_GUIDE.md)
+   （含元件責任對照表、`SKILL.md` 撰寫方式、常用 slash commands）
+2. **回到本 repo 的分析主線** → 根目錄 [`README.md`](../../README.md)
+   ，或直接進 [`上課用prompt/分析師武器庫.md`](../../上課用prompt/分析師武器庫.md) 走六階段流程
+3. **讓 agent 認識資料集** → 根目錄 [`AGENTS.md`](../../AGENTS.md)
+   已寫好資料集契約與分析鐵律，`agy` 會自動讀取，不需要你額外設定
+
+> ⚠️ 完整 Antigravity 文件集裡另有 `COMPONENTS.md`（元件選用時機）與
+> `PORTING.md`（`.claude/` → `.agents/` 的移植陷阱），**尚未納入本 repo**，
+> 與 `.agents/` 軌一併待補。元件責任的部分，`CLI_GUIDE.md` 第 2.1 節已有對照表可先用。

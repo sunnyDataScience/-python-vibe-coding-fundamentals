@@ -37,6 +37,7 @@
 ├── scripts/                     # 可重跑的分析腳本
 │   └── visualize_retail.py      # RFM + Cohort 參考實作（可直接執行）
 ├── charts/                      # 圖表產出
+├── docs/antigravity/            # Antigravity CLI 安裝與設定（模式 B 的環境準備）
 ├── AGENTS.md                    # AI agent 的專案作業契約（資料集規格 + 分析鐵律）
 └── CLAUDE.md                    # Claude Code 專屬補充（內容以 AGENTS.md 為準）
 ```
@@ -75,6 +76,10 @@
 agent 一進來就知道欄位語意、已知地雷，以及「每個數字都必須實際算出來」這條規矩。
 Antigravity 與 Claude Code 讀的是同一份（`CLAUDE.md` 只是薄封裝，避免兩份文件走樣）。
 
+> 🛠️ **還沒裝 Antigravity？** 先看 [`docs/antigravity/INSTALL.md`](docs/antigravity/INSTALL.md)。
+> 裡面涵蓋環境前置檢查、Remote SSH / Headless 環境的手動認證流程，
+> 以及八種常見卡關症狀的處置。指令用法見 [`docs/antigravity/CLI_GUIDE.md`](docs/antigravity/CLI_GUIDE.md)。
+
 > ⚠️ 模式 A 有個硬限制：**聊天視窗算不了 52 萬筆資料**。
 > 階段 02 的「執行分析」與階段 04 的「數字驗算」只在模式 B 下才成立。
 > 在聊天視窗做這兩步時，數字必須由你自己算好帶進去 —
@@ -109,6 +114,10 @@ matplotlib 畫中文圖表時，記得設定系統實際存在的中文字型（
 plt.rcParams["font.sans-serif"] = ["Noto Sans CJK TC"]   # Linux
 plt.rcParams["axes.unicode_minus"] = False
 ```
+
+要走**模式 B**（讓 AI agent 直接跑分析）的話，還需要裝好對應的工具：
+Antigravity 見 [`docs/antigravity/INSTALL.md`](docs/antigravity/INSTALL.md)；
+Claude Code 見[官方安裝說明](https://docs.claude.com/en/docs/claude-code/overview)。
 
 ### 2. 先補工具，再走流程
 
