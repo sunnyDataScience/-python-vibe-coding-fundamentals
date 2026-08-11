@@ -78,8 +78,10 @@ df = df[(df["Quantity"] > 0) & (df["UnitPrice"] > 0)]        # 剔除異常量�
 df["TotalSum"] = df["Quantity"] * df["UnitPrice"]
 ```
 
-> 💡 兩個檔案的時間範圍**重疊** 2010-12-01 ~ 2010-12-09。
-> 若要合併分析，必須先去重，否則那 9 天會被重複計算。
+> ⚠️ 兩個檔案的時間範圍**重疊** 2010-12-01 ~ 2010-12-09，
+> 且該區間的資料是**完全重複**的（兩檔各 22,523 筆，內容一致）。
+> 直接 `pd.concat` 會讓這 9 天的營收與交易數變成兩倍。
+> 合併前必須去重：`df.drop_duplicates(subset=["InvoiceNo","StockCode","Quantity","InvoiceDate","UnitPrice"])`
 
 ### 3.2 Taiwan SuperMarket Sales 2025（練習用，含刻意注入的髒資料）
 
