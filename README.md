@@ -37,7 +37,9 @@
 ├── scripts/                     # 可重跑的分析腳本
 │   └── visualize_retail.py      # RFM + Cohort 參考實作（可直接執行）
 ├── charts/                      # 圖表產出
-├── docs/antigravity/            # Antigravity CLI 安裝與設定（模式 B 的環境準備）
+├── docs/
+│   ├── antigravity/             # Antigravity CLI 安裝與設定（模式 B 的環境準備）
+│   └── course/                  # 延伸閱讀（LLM 工程通則，非六階段流程的一部分）
 ├── AGENTS.md                    # AI agent 的專案作業契約（資料集規格 + 分析鐵律）
 └── CLAUDE.md                    # Claude Code 專屬補充（內容以 AGENTS.md 為準）
 ```

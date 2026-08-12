@@ -25,7 +25,9 @@
 ├── scripts/                     # 可重跑的分析腳本
 │   └── visualize_retail.py      # RFM + Cohort 參考實作（見第 7 節）
 ├── charts/                      # 圖表產出
-├── docs/antigravity/            # Antigravity CLI 安裝與 .agents 設定手冊
+├── docs/
+│   ├── antigravity/             # Antigravity CLI 安裝與 .agents 設定手冊
+│   └── course/                  # 延伸閱讀（LLM 工程通則）
 └── README.md
 ```
 
