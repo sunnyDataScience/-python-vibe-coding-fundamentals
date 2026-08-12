@@ -27,7 +27,11 @@
 ├── solutions/                   # 學員的參考解答 — 讀取規則見第 7 節
 │   └── visualize_retail.py      # 你的程式碼範本（見第 7 節）
 ├── docs/
+│   ├── README.md                # 選一個 coding agent（四款對照）
 │   ├── antigravity/             # Antigravity CLI 安裝與 .agents 設定手冊
+│   ├── claude-code/             # Claude Code 安裝與 .claude 設定手冊
+│   ├── codex/                   # Codex CLI 安裝與 AGENTS.md 設定手冊
+│   ├── opencode/                # opencode 安裝與 opencode.json 設定手冊
 │   └── course/                  # 延伸閱讀（LLM 工程通則）
 └── README.md
 ```

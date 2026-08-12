@@ -38,7 +38,11 @@
 ├── charts/                      # 你的圖表產出
 ├── solutions/                   # ⚠️ 參考解答 — 先自己做，卡住再看
 ├── docs/
-│   ├── antigravity/             # Antigravity CLI 安裝與設定（模式 B 的環境準備）
+│   ├── README.md                # ★ 選一個 coding agent（四款對照與安裝入口）
+│   ├── antigravity/             # Antigravity CLI 安裝與設定
+│   ├── claude-code/             # Claude Code 安裝與設定
+│   ├── codex/                   # Codex CLI 安裝與設定
+│   ├── opencode/                # opencode 安裝與設定
 │   └── course/                  # 延伸閱讀（LLM 工程通則，非六階段流程的一部分）
 ├── AGENTS.md                    # AI agent 的專案作業契約（資料集規格 + 分析鐵律）
 └── CLAUDE.md                    # Claude Code 專屬補充（內容以 AGENTS.md 為準）
@@ -76,11 +80,14 @@
 
 **模式 B 的關鍵**：專案根目錄的 `AGENTS.md` 已經寫好資料集契約與分析鐵律，
 agent 一進來就知道欄位語意、已知地雷，以及「每個數字都必須實際算出來」這條規矩。
-Antigravity 與 Claude Code 讀的是同一份（`CLAUDE.md` 只是薄封裝，避免兩份文件走樣）。
 
-> 🛠️ **還沒裝 Antigravity？** 先看 [`docs/antigravity/INSTALL.md`](docs/antigravity/INSTALL.md)。
-> 裡面涵蓋環境前置檢查、Remote SSH / Headless 環境的手動認證流程，
-> 以及八種常見卡關症狀的處置。指令用法見 [`docs/antigravity/CLI_GUIDE.md`](docs/antigravity/CLI_GUIDE.md)。
+**本專案不綁定任何一款 coding agent。** Antigravity、Codex、opencode 都原生讀 `AGENTS.md`；
+Claude Code 讀的是 `CLAUDE.md`，而本 repo 的 `CLAUDE.md` 只是一層 `@AGENTS.md` 的薄封裝 ——
+四款讀到的是同一份契約，避免兩份文件走樣。
+
+> 🛠️ **還沒裝好環境？** 從 [`docs/README.md`](docs/README.md) 開始 ——
+> 那裡有四款 agent 的對照表、選擇建議，以及一個「怎麼確認它真的讀到專案契約」的驗收提問。
+> 每一款都有各自的安裝 SOP（前置檢查、認證流程、常見卡關症狀處置）與指令手冊。
 
 > ⚠️ 模式 A 有個硬限制：**聊天視窗算不了 52 萬筆資料**。
 > 階段 02 的「執行分析」與階段 04 的「數字驗算」只在模式 B 下才成立。
@@ -117,9 +124,15 @@ plt.rcParams["font.sans-serif"] = ["Noto Sans CJK TC"]   # Linux
 plt.rcParams["axes.unicode_minus"] = False
 ```
 
-要走**模式 B**（讓 AI agent 直接跑分析）的話，還需要裝好對應的工具：
-Antigravity 見 [`docs/antigravity/INSTALL.md`](docs/antigravity/INSTALL.md)；
-Claude Code 見[官方安裝說明](https://docs.claude.com/en/docs/claude-code/overview)。
+要走**模式 B**（讓 AI agent 直接跑分析）的話，還需要裝一款 coding agent。
+四款都可以，選一個就好 —— 對照表、選擇建議與各自的安裝 SOP 見 [`docs/README.md`](docs/README.md)：
+
+| 工具 | 安裝手冊 |
+| :--- | :--- |
+| Antigravity（`agy`） | [`docs/antigravity/INSTALL.md`](docs/antigravity/INSTALL.md) |
+| Claude Code（`claude`） | [`docs/claude-code/INSTALL.md`](docs/claude-code/INSTALL.md) |
+| Codex（`codex`） | [`docs/codex/INSTALL.md`](docs/codex/INSTALL.md) |
+| opencode | [`docs/opencode/INSTALL.md`](docs/opencode/INSTALL.md) |
 
 ### 2. 先補工具，再走流程
 

@@ -112,3 +112,5 @@ description: 執行目前專案的語法與編譯檢查。當使用者要求驗�
 ## 下一步
 
 - 閱讀 [`INSTALL.md`](./INSTALL.md) 了解 Antigravity CLI 的完整安裝與環境驗證。
+- 想比較其他 coding agent（Claude Code / Codex / opencode）→ [`../README.md`](../README.md)
+- 回到分析主線 → [`上課用prompt/index.html`](../../上課用prompt/index.html)
