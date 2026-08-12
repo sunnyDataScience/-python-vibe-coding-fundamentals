@@ -1,0 +1,1601 @@
+<title>分析師武器庫</title>
+
+<style>
+/* ============================================================
+   分析師武器庫 — 教學導覽頁
+   視覺概念：冷色調的印刷稿紙 + 校對紅筆。
+   全課的論點是「AI 產出的數字要被稽核」，所以品質關卡一律用校對紅，
+   流程主線用低彩度墨色，交接物用石板藍。紅色只出現在該懷疑的地方。
+   ============================================================ */
+
+/* ---------- tokens：淺色為基準，深色只覆蓋變數 ---------- */
+:root {
+  --paper:      #E6EAED;
+  --panel:      #F7F9FA;
+  --panel-2:    #DCE3E8;
+  --ink:        #14181C;
+  --ink-2:      #56626C;
+  --ink-3:      #7F8C96;
+  --rule:       #C0CAD1;
+  --rule-soft:  #D5DDE2;
+  --stamp:      #B23127;
+  --stamp-ink:  #8E241C;
+  --stamp-soft: #F1DAD7;
+  --flow:       #2F6480;
+  --flow-soft:  #D9E6ED;
+  --ok:         #2C6A4E;
+  --shadow:     0 1px 2px rgba(20,24,28,.07), 0 10px 26px -14px rgba(20,24,28,.28);
+
+  --font-display: "Noto Serif TC","Noto Serif CJK TC","Source Han Serif TC","Songti TC","PMingLiU",Georgia,"Times New Roman",serif;
+  --font-body: "PingFang TC","Noto Sans TC","Noto Sans CJK TC","Microsoft JhengHei",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --font-mono: ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,"Noto Sans Mono CJK TC",monospace;
+
+  --maxw: 1180px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #0F1418;
+    --panel:      #171F26;
+    --panel-2:    #202B34;
+    --ink:        #E3E9ED;
+    --ink-2:      #9AA8B3;
+    --ink-3:      #71808B;
+    --rule:       #2C3843;
+    --rule-soft:  #222D36;
+    --stamp:      #FF6E5E;
+    --stamp-ink:  #FF9C90;
+    --stamp-soft: #33201E;
+    --flow:       #7FBBD6;
+    --flow-soft:  #17262E;
+    --ok:         #6FC49A;
+    --shadow:     0 1px 2px rgba(0,0,0,.45), 0 12px 32px -16px rgba(0,0,0,.75);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:      #0F1418;
+  --panel:      #171F26;
+  --panel-2:    #202B34;
+  --ink:        #E3E9ED;
+  --ink-2:      #9AA8B3;
+  --ink-3:      #71808B;
+  --rule:       #2C3843;
+  --rule-soft:  #222D36;
+  --stamp:      #FF6E5E;
+  --stamp-ink:  #FF9C90;
+  --stamp-soft: #33201E;
+  --flow:       #7FBBD6;
+  --flow-soft:  #17262E;
+  --ok:         #6FC49A;
+  --shadow:     0 1px 2px rgba(0,0,0,.45), 0 12px 32px -16px rgba(0,0,0,.75);
+}
+
+/* ---------- 基底 ---------- */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; margin: 0; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--flow); text-underline-offset: 3px; }
+code, kbd { font-family: var(--font-mono); }
+:focus-visible { outline: 2px solid var(--stamp); outline-offset: 3px; border-radius: 3px; }
+
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+/* ---------- HERO ---------- */
+.hero {
+  border-bottom: 1px solid var(--rule);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--paper) 100%);
+}
+.hero-inner { display: flex; flex-direction: column; gap: 22px; padding: 52px 24px 40px; max-width: var(--maxw); margin: 0 auto; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: .72rem; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 10px;
+}
+.eyebrow::before { content: ""; width: 26px; height: 2px; background: var(--stamp); }
+.hero h1 { font-size: clamp(2.3rem, 5.4vw, 3.5rem); line-height: 1.12; letter-spacing: .01em; }
+.hero .lede { max-width: 58ch; font-size: 1.06rem; color: var(--ink-2); }
+.hero .lede strong { color: var(--ink); font-weight: 600; }
+
+.statbar { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--rule); background: var(--panel); border-radius: 3px; overflow: hidden; }
+.stat { flex: 1 1 150px; padding: 14px 18px; border-right: 1px solid var(--rule-soft); }
+.stat:last-child { border-right: 0; }
+.stat .n { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; display: block; line-height: 1.2; }
+.stat .k { font-size: .8rem; color: var(--ink-2); }
+.stat.is-stamp .n { color: var(--stamp); }
+
+/* ---------- 版面：左側導軌 + 主欄 ---------- */
+.shell { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 80px; display: grid; grid-template-columns: 1fr; gap: 0; }
+@media (min-width: 1040px) {
+  .shell { grid-template-columns: 196px minmax(0, 1fr); gap: 48px; }
+}
+
+.rail { display: none; }
+@media (min-width: 1040px) {
+  .rail { display: block; position: sticky; top: 24px; align-self: start; padding-top: 44px; max-height: calc(100vh - 48px); overflow-y: auto; }
+}
+.rail-title { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+.rail ol { list-style: none; margin: 0 0 18px; padding: 0; border-left: 1px solid var(--rule); }
+.rail li a {
+  display: flex; gap: 9px; align-items: baseline; padding: 5px 0 5px 12px; margin-left: -1px;
+  border-left: 2px solid transparent; color: var(--ink-2); text-decoration: none; font-size: .845rem; line-height: 1.4;
+}
+.rail li a:hover { color: var(--ink); }
+.rail li a .c { font-family: var(--font-mono); font-size: .7rem; color: var(--ink-3); min-width: 26px; font-variant-numeric: tabular-nums; }
+.rail li a.active { color: var(--ink); border-left-color: var(--stamp); font-weight: 600; }
+.rail li a.active .c { color: var(--stamp); }
+.rail li a.is-gate .c { color: var(--stamp); }
+
+.progress-box { border: 1px solid var(--rule); border-radius: 3px; padding: 12px 13px; background: var(--panel); }
+.progress-box .lbl { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.progress-box .cnt { font-family: var(--font-mono); font-size: 1.1rem; font-variant-numeric: tabular-nums; margin: 2px 0 8px; }
+.pips { display: flex; gap: 4px; }
+.pips i { flex: 1; height: 5px; border-radius: 2px; background: var(--panel-2); border: 1px solid var(--rule-soft); }
+.pips i.on { background: var(--stamp); border-color: var(--stamp); }
+.progress-box button {
+  margin-top: 10px; width: 100%; font: inherit; font-size: .74rem; color: var(--ink-3);
+  background: none; border: 1px solid var(--rule); border-radius: 3px; padding: 3px; cursor: pointer;
+}
+.progress-box button:hover { color: var(--ink); border-color: var(--ink-3); }
+
+/* ---------- 區塊通則 ---------- */
+main { min-width: 0; }
+section { padding-top: 56px; scroll-margin-top: 20px; }
+.sec-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+.sec-kicker { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--stamp); }
+.sec-head h2 { font-size: clamp(1.45rem, 2.7vw, 1.95rem); line-height: 1.3; }
+.sec-head p { color: var(--ink-2); max-width: 62ch; }
+
+/* ---------- 起手式三步 ---------- */
+.howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.howto li {
+  list-style: none; border: 1px solid var(--rule); border-radius: 3px; background: var(--panel);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;
+}
+.howto li .step { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; color: var(--stamp); }
+.howto li h3 { font-size: 1.02rem; }
+.howto li p { font-size: .88rem; color: var(--ink-2); line-height: 1.65; }
+.howto { margin: 0; padding: 0; }
+
+/* ---------- 模式切換 ---------- */
+.modebar {
+  margin-top: 22px; border: 1px solid var(--rule); border-radius: 3px; background: var(--panel);
+  padding: 16px 18px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+}
+.modebar .mb-txt { font-size: .87rem; color: var(--ink-2); max-width: 46ch; }
+.mode-switch { display: inline-flex; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; background: var(--paper); }
+.mode-switch button {
+  font: inherit; font-size: .85rem; padding: 8px 16px; border: 0; background: none; color: var(--ink-2);
+  cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.3;
+  border-right: 1px solid var(--rule);
+}
+.mode-switch button:last-child { border-right: 0; }
+.mode-switch button span { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .1em; color: var(--ink-3); }
+.mode-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.mode-switch button[aria-pressed="true"] span { color: var(--paper); opacity: .62; }
+
+.page[data-mode="a"] .only-b,
+.page[data-mode="b"] .only-a { display: none; }
+
+/* ---------- 圖表（SVG）---------- */
+figure { margin: 0; }
+.figbox {
+  border: 1px solid var(--rule); border-radius: 3px; background: var(--panel);
+  padding: 22px 20px 16px; overflow-x: auto;
+}
+.figbox svg { display: block; min-width: 720px; width: 100%; height: auto; color: var(--ink); }
+figcaption { margin-top: 14px; font-size: .84rem; color: var(--ink-2); line-height: 1.65; max-width: 74ch; }
+
+.dg .n-stage    { fill: var(--panel-2); stroke: var(--ink); stroke-width: 1.4; }
+.dg .n-art      { fill: none; stroke: var(--flow); stroke-width: 1.3; stroke-dasharray: 5 3.5; }
+.dg .n-gate     { fill: var(--stamp-soft); stroke: var(--stamp); stroke-width: 2; }
+.dg .n-src      { fill: none; stroke: var(--ink-3); stroke-width: 1.3; }
+.dg .n-end      { fill: var(--ink); stroke: none; }
+.dg .n-verified { fill: none; stroke: var(--ok); stroke-width: 1.6; }
+.dg .link       { stroke: var(--ink-3); stroke-width: 1.4; fill: none; stroke-linejoin: round; }
+.dg .link-stamp { stroke: var(--stamp); stroke-width: 1.8; fill: none; stroke-linejoin: round; }
+.dg text        { fill: var(--ink); font-family: var(--font-body); }
+.dg .t-code     { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .06em; fill: var(--ink-2); }
+.dg .t-name     { font-size: 13.5px; font-weight: 600; }
+.dg .t-art      { font-size: 12.5px; fill: var(--flow); }
+.dg .t-src      { font-size: 12.5px; fill: var(--ink-2); }
+.dg .t-note     { font-size: 10px; fill: var(--stamp); }
+.dg .t-gate     { font-size: 13px; font-weight: 700; fill: var(--stamp-ink); }
+.dg .t-gate-sub { font-size: 10px; fill: var(--stamp-ink); }
+.dg .t-end      { font-size: 12.5px; font-weight: 600; fill: var(--paper); }
+.dg .t-mono     { font-family: var(--font-mono); font-size: 11px; fill: var(--flow); }
+.dg .t-ok       { font-size: 12.5px; fill: var(--ok); font-weight: 600; }
+.dg .t-stop     { font-family: var(--font-mono); font-size: 11px; fill: var(--ink-2); letter-spacing: .04em; }
+.dg .track      { stroke: var(--rule); stroke-width: 6; stroke-linecap: round; }
+.dg .track-cut  { stroke: var(--stamp); stroke-width: 2; stroke-dasharray: 5 5; }
+.dg .stop-on    { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+.dg .stop-off   { fill: var(--paper); stroke: var(--stamp); stroke-width: 2; }
+.dg .t-lane     { font-size: 13.5px; font-weight: 700; }
+.dg .t-lane-sub { font-size: 10.5px; fill: var(--ink-2); font-family: var(--font-mono); }
+.dg .t-x        { font-size: 11px; fill: var(--stamp); font-weight: 700; }
+.dg .arrowfill  { fill: var(--ink-3); }
+.dg .arrowfill-s{ fill: var(--stamp); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: .8rem; color: var(--ink-2); }
+.legend b { display: inline-flex; align-items: center; gap: 7px; font-weight: 400; }
+.legend .sw { width: 24px; height: 13px; border-radius: 2px; flex: none; }
+.sw-stage { background: var(--panel-2); border: 1.4px solid var(--ink); }
+.sw-art   { border: 1.3px dashed var(--flow); border-radius: 7px !important; }
+.sw-gate  { background: var(--stamp-soft); border: 2px solid var(--stamp); }
+
+/* ---------- 階段卡 ---------- */
+.stages { display: flex; flex-direction: column; gap: 16px; }
+.stage {
+  border: 1px solid var(--rule); border-radius: 3px; background: var(--panel);
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.stage.is-gate { border-color: var(--stamp); border-width: 1.5px; }
+.stage.is-gate .st-code { color: var(--stamp); }
+.stage.is-gate .st-head { background: var(--stamp-soft); }
+
+.st-head { padding: 18px 22px; display: grid; grid-template-columns: 60px minmax(0,1fr); gap: 4px 16px; align-items: start; }
+.st-code { font-family: var(--font-mono); font-size: 1.28rem; font-weight: 600; color: var(--ink-3); grid-row: 1 / span 2; line-height: 1.35; font-variant-numeric: tabular-nums; }
+.st-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.st-title h3 { font-size: 1.22rem; }
+.st-task { color: var(--ink-2); font-size: .92rem; grid-column: 2; }
+
+.tag {
+  font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 2px; border: 1px solid var(--rule); color: var(--ink-3); white-space: nowrap;
+}
+.tag.t-b { border-color: var(--stamp); color: var(--stamp); }
+.tag.t-opt { border-style: dashed; }
+
+.io { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 0 22px 16px 98px; font-size: .86rem; }
+@media (max-width: 620px) { .io { padding-left: 22px; } .st-head { grid-template-columns: 48px minmax(0,1fr); } }
+.io .chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 14px;
+  border: 1px dashed var(--flow); color: var(--flow); background: var(--flow-soft); line-height: 1.5;
+}
+.io .chip.out { border-style: solid; }
+.io .arw { color: var(--ink-3); font-family: var(--font-mono); }
+
+.st-body { border-top: 1px solid var(--rule-soft); padding: 0; }
+.st-body > summary {
+  list-style: none; cursor: pointer; padding: 11px 22px; font-size: .84rem; color: var(--ink-2);
+  display: flex; align-items: center; gap: 8px; user-select: none;
+}
+.st-body > summary::-webkit-details-marker { display: none; }
+.st-body > summary::before {
+  content: "＋"; font-family: var(--font-mono); color: var(--stamp); font-size: .95rem; line-height: 1;
+}
+.st-body[open] > summary::before { content: "－"; }
+.st-body > summary:hover { color: var(--ink); }
+.st-detail { padding: 4px 22px 22px; display: flex; flex-direction: column; gap: 18px; border-top: 1px solid var(--rule-soft); }
+
+.dblock h4 {
+  font-family: var(--font-mono); font-size: .7rem; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 8px; font-weight: 500;
+}
+.dblock ul { margin: 0; padding-left: 1.15em; display: flex; flex-direction: column; gap: 6px; }
+.dblock li { font-size: .9rem; line-height: 1.7; }
+.dblock li::marker { color: var(--ink-3); }
+.dblock p { font-size: .9rem; line-height: 1.7; }
+.two-col { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 700px) { .two-col { grid-template-columns: 1fr 1fr; gap: 26px; } }
+
+.trap {
+  border-left: 3px solid var(--stamp); background: var(--stamp-soft); padding: 11px 15px; border-radius: 0 3px 3px 0;
+  font-size: .88rem; line-height: 1.7;
+}
+.trap b { color: var(--stamp-ink); }
+.note {
+  border-left: 3px solid var(--flow); background: var(--flow-soft); padding: 11px 15px; border-radius: 0 3px 3px 0;
+  font-size: .88rem; line-height: 1.7;
+}
+
+/* 檔案路徑 chip（點擊複製，兩種環境都不會壞掉的連結替代品） */
+.path {
+  font-family: var(--font-mono); font-size: .78rem; border: 1px solid var(--rule); background: var(--paper);
+  color: var(--ink); padding: 3px 8px; border-radius: 2px; cursor: pointer; line-height: 1.6;
+  display: inline-flex; align-items: center; gap: 6px; word-break: break-all; text-align: left;
+}
+.path:hover { border-color: var(--stamp); color: var(--stamp); }
+.path::after { content: "⧉"; color: var(--ink-3); font-size: .8rem; }
+.path:hover::after { color: var(--stamp); }
+.path.copied::after { content: "已複製"; font-size: .68rem; color: var(--ok); }
+
+.done-row { border-top: 1px solid var(--rule-soft); padding: 9px 22px; background: var(--paper); }
+.done-row label { display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--ink-3); cursor: pointer; }
+.done-row input { accent-color: var(--stamp); width: 15px; height: 15px; }
+.done-row label:hover { color: var(--ink-2); }
+
+/* ---------- 走查 timeline ---------- */
+.tl { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--rule); display: flex; flex-direction: column; gap: 26px; }
+.tl > li { position: relative; padding-left: 26px; }
+.tl > li::before {
+  content: attr(data-n); position: absolute; left: -14px; top: 2px; width: 27px; height: 27px; border-radius: 50%;
+  background: var(--panel); border: 1px solid var(--rule); color: var(--ink-2);
+  font-family: var(--font-mono); font-size: .76rem; display: flex; align-items: center; justify-content: center;
+}
+.tl > li.hot::before { border-color: var(--stamp); color: var(--stamp); background: var(--stamp-soft); }
+.tl h3 { font-size: 1.03rem; margin-bottom: 4px; }
+.tl .who { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.tl p { font-size: .9rem; color: var(--ink-2); line-height: 1.72; margin-bottom: 8px; }
+.tl p strong { color: var(--ink); font-weight: 600; }
+.tl .outcome { border: 1px solid var(--rule-soft); background: var(--panel); border-radius: 3px; padding: 10px 14px; font-size: .86rem; }
+.tl .outcome ul { margin: 6px 0 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 4px; }
+.tl .outcome .lab { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ---------- 外掛 / 速查 ---------- */
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--rule); border-radius: 3px; background: var(--panel); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.card h3 { font-size: 1rem; }
+.card p { font-size: .87rem; color: var(--ink-2); line-height: 1.7; }
+.card .when { font-family: var(--font-mono); font-size: .67rem; letter-spacing: .1em; text-transform: uppercase; color: var(--stamp); }
+
+.quad { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.quad > div { border: 1px solid var(--rule); border-radius: 3px; padding: 14px 16px; background: var(--panel); }
+.quad h4 { font-family: var(--font-body); font-size: .98rem; margin-bottom: 3px; }
+.quad .q { font-size: .82rem; color: var(--ink-3); margin-bottom: 8px; font-style: italic; }
+.quad ul { margin: 0; padding-left: 1.05em; }
+.quad li { font-size: .84rem; line-height: 1.68; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; background: var(--panel); font-size: .88rem; }
+th, td { text-align: left; padding: 11px 15px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; line-height: 1.65; }
+thead th { background: var(--panel-2); font-family: var(--font-body); font-weight: 600; font-size: .82rem; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+
+/* ---------- 鐵律 ---------- */
+.laws { border: 1.5px solid var(--stamp); border-radius: 3px; background: var(--panel); overflow: hidden; }
+.laws-head { background: var(--stamp-soft); padding: 14px 20px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.laws-head h3 { font-size: 1.1rem; color: var(--stamp-ink); }
+.laws-head span { font-size: .82rem; color: var(--stamp-ink); }
+.laws ol { margin: 0; padding: 6px 20px 18px 42px; display: flex; flex-direction: column; gap: 12px; }
+.laws li { line-height: 1.72; font-size: .92rem; }
+.laws li::marker { font-family: var(--font-mono); color: var(--stamp); font-size: .85rem; }
+.laws li b { display: block; font-size: .97rem; }
+.laws li span { color: var(--ink-2); font-size: .89rem; }
+
+/* ---------- footer ---------- */
+.foot { border-top: 1px solid var(--rule); margin-top: 64px; padding: 26px 24px 40px; }
+.foot .wrap { display: flex; flex-direction: column; gap: 10px; }
+.foot p { font-size: .84rem; color: var(--ink-3); line-height: 1.7; }
+.foot .srcs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+
+<div class="page" data-mode="b">
+
+<!-- ══════════════════════════ HERO ══════════════════════════ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">上課用 Prompt ／ 六階段分析工作流</div>
+    <h1>分析師武器庫</h1>
+    <p class="lede">
+      把一句「業績好像不太對」，變成一份<strong>每個數字都有人負責</strong>的報告，
+      再變成一個<strong>會自己持續更新</strong>的儀表板。這條路被拆成九關，
+      每一關有一份可直接取用的 Prompt 模板，<strong>前一關的產出就是後一關的輸入</strong>。
+    </p>
+    <div class="statbar">
+      <div class="stat"><span class="n">9</span><span class="k">道關卡（含 2 個進階分支）</span></div>
+      <div class="stat"><span class="n">8</span><span class="k">份主線 Prompt 模板</span></div>
+      <div class="stat"><span class="n">6</span><span class="k">份輔助速查文件</span></div>
+      <div class="stat is-stamp"><span class="n">2</span><span class="k">道數字品質關卡</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ══════════════════ 左側導軌 ══════════════════ -->
+  <nav class="rail" aria-label="頁面章節">
+    <div class="rail-title">章節</div>
+    <ol id="rail-list">
+      <li><a href="#start"><span class="c">↗</span>怎麼用這頁</a></li>
+      <li><a href="#flow"><span class="c">◎</span>全流程圖</a></li>
+      <li><a href="#modes"><span class="c">A/B</span>兩種模式</a></li>
+      <li><a href="#s00"><span class="c">00</span>問題定義</a></li>
+      <li><a href="#s01"><span class="c">01</span>資料描述</a></li>
+      <li><a href="#s02"><span class="c">02</span>分析策略</a></li>
+      <li><a href="#s02p"><span class="c">02+</span>執行分析</a></li>
+      <li><a href="#s03"><span class="c">03</span>圖表選用</a></li>
+      <li><a href="#s04"><span class="c">04</span>報告呈現</a></li>
+      <li><a href="#sgate" class="is-gate"><span class="c">✓</span>數字驗算</a></li>
+      <li><a href="#s04p"><span class="c">04+</span>儀表板藍圖</a></li>
+      <li><a href="#s05"><span class="c">05</span>儀表板上線</a></li>
+      <li><a href="#walk"><span class="c">▸</span>完整走查</a></li>
+      <li><a href="#extras"><span class="c">＋</span>輔助文件</a></li>
+      <li><a href="#laws"><span class="c">!</span>四條鐵律</a></li>
+    </ol>
+    <div class="progress-box">
+      <div class="lbl">你的進度</div>
+      <div class="cnt"><span id="pg-n">0</span> / 9 關</div>
+      <div class="pips" id="pips" aria-hidden="true"></div>
+      <button type="button" id="pg-reset">清除進度</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ══════════════════ 怎麼用這頁 ══════════════════ -->
+    <section id="start">
+      <div class="sec-head">
+        <div class="sec-kicker">Start here</div>
+        <h2>怎麼用這一頁</h2>
+        <p>這頁把「總索引」與「使用手冊」合成一份導覽。資訊分三層：先看全圖 → 再看單關摘要 → 需要細節才展開。</p>
+      </div>
+      <ol class="howto">
+        <li>
+          <div class="step">第一層 ／ 全圖</div>
+          <h3>先看流程長什麼樣</h3>
+          <p>下面那張圖是整套武器庫的骨架。看懂「哪一關餵給哪一關」，比背下每份模板的內容重要得多。</p>
+        </li>
+        <li>
+          <div class="step">第二層 ／ 關卡摘要</div>
+          <h3>再看每一關收什麼、吐什麼</h3>
+          <p>每張關卡有固定三件事：<b>輸入 → 產出 → 對應檔案</b>。這一層就夠你在課堂上跟著操作。</p>
+        </li>
+        <li>
+          <div class="step">第三層 ／ 展開細節</div>
+          <h3>卡住了再展開</h3>
+          <p>點「展開」才會看到模板重點、驗收標準、以及那一關最常翻車的地方。不卡住就不用讀。</p>
+        </li>
+      </ol>
+
+      <div class="modebar">
+        <p class="mb-txt">
+          先選你的環境 —— 這會改變每一關「你要做什麼」的內容。
+          <strong>模式 A 有兩關做不到</strong>，選了會看到替代做法。
+        </p>
+        <div class="mode-switch" role="group" aria-label="選擇使用模式">
+          <button type="button" data-mode="a" aria-pressed="false">模式 A<span>聊天視窗</span></button>
+          <button type="button" data-mode="b" aria-pressed="true">模式 B<span>AI Coding</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 全流程圖 ══════════════════ -->
+    <section id="flow">
+      <div class="sec-head">
+        <div class="sec-kicker">Layer 1 ／ 一眼看懂</div>
+        <h2>全流程：交接物才是主角</h2>
+        <p>方框是「你要做的動作」，虛線圓角框是「這一步交出去的東西」。跳關之所以會壞掉，是因為下一關的模板預期收到那個交接物。</p>
+      </div>
+
+      <figure>
+        <div class="figbox">
+          <svg class="dg" viewBox="0 0 1220 600" role="img"
+               aria-label="六階段分析工作流：商業問題經階段 00、02 產出分析策略；原始資料經階段 01 產出數據卡；兩者匯入階段 02+ 執行分析產出已驗證洞察，再經階段 03 圖表選用、階段 04 報告呈現產出報告骨架，通過報告數字驗算關卡後，經階段 04+ 儀表板藍圖與階段 05 上線，導向可執行的商業決策。">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" class="arrowfill" />
+              </marker>
+              <marker id="ars" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" class="arrowfill-s" />
+              </marker>
+            </defs>
+
+            <!-- ── 第一線：問題定義 ── -->
+            <rect class="n-src" x="24" y="44" width="150" height="54" rx="3" />
+            <text class="t-src" x="99" y="76" text-anchor="middle">😫 模糊的商業問題</text>
+            <line class="link" x1="174" y1="71" x2="211" y2="71" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="214" y="44" width="178" height="54" rx="3" />
+            <text class="t-code" x="303" y="64" text-anchor="middle">階段 00</text>
+            <text class="t-name" x="303" y="83" text-anchor="middle">問題定義</text>
+            <line class="link" x1="392" y1="71" x2="429" y2="71" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="432" y="44" width="158" height="54" rx="14" />
+            <text class="t-art" x="511" y="76" text-anchor="middle">分析問題定義書</text>
+            <line class="link" x1="590" y1="71" x2="627" y2="71" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="630" y="44" width="178" height="54" rx="3" />
+            <text class="t-code" x="719" y="64" text-anchor="middle">階段 02</text>
+            <text class="t-name" x="719" y="83" text-anchor="middle">分析策略</text>
+            <line class="link" x1="808" y1="71" x2="845" y2="71" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="848" y="44" width="150" height="54" rx="14" />
+            <text class="t-art" x="923" y="76" text-anchor="middle">分析策略建議</text>
+
+            <!-- ── 第二線：資料準備 ── -->
+            <rect class="n-src" x="24" y="154" width="150" height="54" rx="3" />
+            <text class="t-src" x="99" y="186" text-anchor="middle">💾 原始資料集</text>
+            <line class="link" x1="174" y1="181" x2="211" y2="181" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="214" y="154" width="178" height="54" rx="3" />
+            <text class="t-code" x="303" y="174" text-anchor="middle">階段 01</text>
+            <text class="t-name" x="303" y="193" text-anchor="middle">資料描述</text>
+            <line class="link" x1="392" y1="181" x2="429" y2="181" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="432" y="154" width="158" height="54" rx="14" />
+            <text class="t-art" x="511" y="186" text-anchor="middle">數據卡</text>
+
+            <!-- ── 匯流：兩線同時餵進 02+ ── -->
+            <line class="link" x1="511" y1="208" x2="511" y2="271" marker-end="url(#ar)" />
+            <path class="link" d="M923 98 V309 H641" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="392" y="274" width="246" height="70" rx="3" />
+            <text class="t-code" x="515" y="294" text-anchor="middle">階段 02+</text>
+            <text class="t-name" x="515" y="313" text-anchor="middle">執行分析（真的去跑數字）</text>
+            <text class="t-note" x="515" y="331" text-anchor="middle">★ 只有模式 B 做得到</text>
+
+            <path class="link" d="M515 344 V372 H109 V401" marker-end="url(#ar)" />
+
+            <!-- ── 第三線：視覺化與報告 ── -->
+            <rect class="n-art" x="24" y="404" width="150" height="54" rx="14" />
+            <text class="t-art" x="99" y="436" text-anchor="middle">已驗證的關鍵洞察</text>
+            <line class="link" x1="174" y1="431" x2="211" y2="431" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="214" y="404" width="170" height="54" rx="3" />
+            <text class="t-code" x="299" y="424" text-anchor="middle">階段 03</text>
+            <text class="t-name" x="299" y="443" text-anchor="middle">圖表選用</text>
+            <line class="link" x1="384" y1="431" x2="421" y2="431" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="424" y="404" width="150" height="54" rx="14" />
+            <text class="t-art" x="499" y="436" text-anchor="middle">圖表設計建議</text>
+            <line class="link" x1="574" y1="431" x2="611" y2="431" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="614" y="404" width="170" height="54" rx="3" />
+            <text class="t-code" x="699" y="424" text-anchor="middle">階段 04</text>
+            <text class="t-name" x="699" y="443" text-anchor="middle">報告呈現</text>
+            <line class="link" x1="784" y1="431" x2="821" y2="431" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="824" y="404" width="190" height="54" rx="14" />
+            <text class="t-art" x="919" y="427" text-anchor="middle">報告骨架</text>
+            <text class="t-note" x="919" y="445" text-anchor="middle">裡面的百分比全是佔位符</text>
+            <line class="link-stamp" x1="1014" y1="431" x2="1041" y2="431" marker-end="url(#ars)" />
+
+            <rect class="n-gate" x="1044" y="404" width="132" height="54" rx="3" />
+            <text class="t-gate" x="1110" y="425" text-anchor="middle">報告數字驗算</text>
+            <text class="t-gate-sub" x="1110" y="443" text-anchor="middle">交付前必跑</text>
+
+            <path class="link" d="M1110 458 V492 H109 V521" marker-end="url(#ar)" />
+
+            <!-- ── 第四線：昇華至持續監控 ── -->
+            <rect class="n-verified" x="24" y="524" width="170" height="54" rx="14" />
+            <text class="t-ok" x="109" y="556" text-anchor="middle">✅ 數字已驗證的報告</text>
+            <line class="link" x1="194" y1="551" x2="225" y2="551" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="228" y="524" width="180" height="54" rx="3" />
+            <text class="t-code" x="318" y="544" text-anchor="middle">階段 04+</text>
+            <text class="t-name" x="318" y="563" text-anchor="middle">儀表板藍圖</text>
+            <line class="link" x1="408" y1="551" x2="439" y2="551" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="442" y="524" width="160" height="54" rx="14" />
+            <text class="t-art" x="522" y="556" text-anchor="middle">儀表板設計藍圖</text>
+            <line class="link" x1="602" y1="551" x2="633" y2="551" marker-end="url(#ar)" />
+
+            <rect class="n-stage" x="636" y="524" width="180" height="54" rx="3" />
+            <text class="t-code" x="726" y="544" text-anchor="middle">階段 05</text>
+            <text class="t-name" x="726" y="563" text-anchor="middle">儀表板上線</text>
+            <line class="link" x1="816" y1="551" x2="847" y2="551" marker-end="url(#ar)" />
+
+            <rect class="n-art" x="850" y="524" width="180" height="54" rx="14" />
+            <text class="t-mono" x="940" y="547" text-anchor="middle">app.py</text>
+            <text class="t-mono" x="940" y="564" text-anchor="middle">requirements.txt</text>
+            <line class="link" x1="1030" y1="551" x2="1057" y2="551" marker-end="url(#ar)" />
+
+            <rect class="n-end" x="1060" y="524" width="150" height="54" rx="3" />
+            <text class="t-end" x="1135" y="547" text-anchor="middle">🏆 可執行的</text>
+            <text class="t-end" x="1135" y="565" text-anchor="middle">商業決策</text>
+          </svg>
+        </div>
+        <div class="legend">
+          <b><span class="sw sw-stage"></span>流程關卡＝一份 Prompt 模板</b>
+          <b><span class="sw sw-art"></span>交接物＝上一關交出去的東西</b>
+          <b><span class="sw sw-gate"></span>品質關卡＝跳過就沒人為數字負責</b>
+        </div>
+        <figcaption>
+          流程從左上兩條線同時起跑：一條把商業問題磨成策略，一條把原始資料摸清楚。
+          兩條線在<strong>階段 02+</strong> 匯流 —— 這是整套流程裡唯一真的去碰數據的一步。
+          之後往下走，報告產出後必須先過<strong>紅色的驗算關卡</strong>，才有資格昇華成儀表板。
+          （靜態報告本身就已經可以拿去做決策；階段 04+／05 是把一次性洞察變成持續監控。）
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- ══════════════════ 兩種模式 ══════════════════ -->
+    <section id="modes">
+      <div class="sec-head">
+        <div class="sec-kicker">Layer 1 ／ 選你的環境</div>
+        <h2>模式 A 與模式 B 差在哪兩關</h2>
+        <p>同一套模板，兩種環境都能用，但有兩關聊天視窗做不到 —— 因為它算不了 52 萬筆資料。</p>
+      </div>
+
+      <figure>
+        <div class="figbox">
+          <svg class="dg" viewBox="0 0 1040 235" role="img"
+               aria-label="模式對照圖：模式 B（AI Coding）能完整走完九關；模式 A（聊天視窗）在階段 02+ 執行分析與報告數字驗算這兩關斷開，必須自行在 Jupyter 補上。">
+            <text class="t-stop" x="270" y="42" text-anchor="middle">00</text>
+            <text class="t-stop" x="356" y="42" text-anchor="middle">01</text>
+            <text class="t-stop" x="442" y="42" text-anchor="middle">02</text>
+            <text class="t-stop" x="528" y="42" text-anchor="middle">02+</text>
+            <text class="t-stop" x="614" y="42" text-anchor="middle">03</text>
+            <text class="t-stop" x="700" y="42" text-anchor="middle">04</text>
+            <text class="t-stop" x="786" y="42" text-anchor="middle">驗算</text>
+            <text class="t-stop" x="872" y="42" text-anchor="middle">04+</text>
+            <text class="t-stop" x="958" y="42" text-anchor="middle">05</text>
+
+            <!-- 模式 A -->
+            <text class="t-lane" x="20" y="96">模式 A</text>
+            <text class="t-lane-sub" x="20" y="113">聊天視窗</text>
+            <line class="track" x1="270" y1="100" x2="958" y2="100" />
+            <line class="track-cut" x1="442" y1="100" x2="614" y2="100" />
+            <line class="track-cut" x1="700" y1="100" x2="872" y2="100" />
+            <circle class="stop-on"  cx="270" cy="100" r="8" />
+            <circle class="stop-on"  cx="356" cy="100" r="8" />
+            <circle class="stop-on"  cx="442" cy="100" r="8" />
+            <circle class="stop-off" cx="528" cy="100" r="8" />
+            <circle class="stop-on"  cx="614" cy="100" r="8" />
+            <circle class="stop-on"  cx="700" cy="100" r="8" />
+            <circle class="stop-off" cx="786" cy="100" r="8" />
+            <circle class="stop-on"  cx="872" cy="100" r="8" />
+            <circle class="stop-on"  cx="958" cy="100" r="8" />
+            <text class="t-x" x="528" y="132" text-anchor="middle">✕ 自己去 Jupyter 算</text>
+            <text class="t-x" x="786" y="132" text-anchor="middle">✕ 自己逐項對帳</text>
+
+            <!-- 模式 B -->
+            <text class="t-lane" x="20" y="186">模式 B</text>
+            <text class="t-lane-sub" x="20" y="203">AI Coding</text>
+            <line class="track" x1="270" y1="190" x2="958" y2="190" />
+            <circle class="stop-on" cx="270" cy="190" r="8" />
+            <circle class="stop-on" cx="356" cy="190" r="8" />
+            <circle class="stop-on" cx="442" cy="190" r="8" />
+            <circle class="stop-on" cx="528" cy="190" r="8" />
+            <circle class="stop-on" cx="614" cy="190" r="8" />
+            <circle class="stop-on" cx="700" cy="190" r="8" />
+            <circle class="stop-on" cx="786" cy="190" r="8" />
+            <circle class="stop-on" cx="872" cy="190" r="8" />
+            <circle class="stop-on" cx="958" cy="190" r="8" />
+          </svg>
+        </div>
+        <figcaption>
+          兩關的斷點不是「模板不支援」，是<strong>環境算不動</strong>。
+          模式 A 在這兩格要自己在 Jupyter／Excel 裡算完，再把結果數字帶回下一關。
+          最危險的做法是叫聊天視窗「幫我估一下大概是多少」—— 它會給你一個很像真的假數字。
+        </figcaption>
+      </figure>
+
+      <div class="tablewrap" style="margin-top:22px">
+        <table>
+          <thead>
+            <tr><th>　</th><th>模式 A ／ 聊天視窗</th><th>模式 B ／ AI Coding</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>環境</td><td>ChatGPT、Claude 網頁版</td><td>Claude Code、Antigravity、Cursor</td></tr>
+            <tr><td>你要做的事</td><td>自己跑 <code>df.info()</code>／<code>describe()</code>，把輸出貼進 <code>CONTEXT</code></td><td>只給資料集路徑</td></tr>
+            <tr><td>AI 做的事</td><td>依你貼的摘要整理成文字產出</td><td>自己讀檔、自己算、自己驗證</td></tr>
+            <tr><td>數字可信度</td><td>取決於你貼的內容是否完整；沒貼到的統計量它<strong>不會知道</strong></td><td>可重現、可驗算</td></tr>
+            <tr><td>做得到幾關</td><td>7 關（缺 02+ 與 驗算）</td><td>9 關全部</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 九道關卡 ══════════════════ -->
+    <section id="stages-head" style="scroll-margin-top:0">
+      <div class="sec-head">
+        <div class="sec-kicker">Layer 2 ／ 逐關操作</div>
+        <h2>九道關卡</h2>
+        <p>每張卡上半是你在課堂上需要的全部：收什麼、吐什麼、用哪個檔。細節收在「展開」裡，卡住了再看。</p>
+      </div>
+
+      <div class="stages">
+
+        <!-- ─────────── 00 ─────────── -->
+        <article class="stage" id="s00">
+          <div class="st-head">
+            <div class="st-code">00</div>
+            <div class="st-title">
+              <h3>問題定義</h3>
+              <span class="tag">兩種模式皆可</span>
+            </div>
+            <p class="st-task">把「我覺得最近怪怪的」翻譯成一個可量化、可驗證的分析問題。</p>
+          </div>
+          <div class="io">
+            <span class="chip">模糊的商業需求</span>
+            <span class="arw">→</span>
+            <span class="chip out">分析問題定義書</span>
+            <button class="path" type="button" data-copy="上課用prompt/00問題定義研究/抽象需求轉換.md">00問題定義研究/抽象需求轉換.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：模板重點、驗收標準、陷阱</summary>
+            <div class="st-detail">
+              <div class="two-col">
+                <div class="dblock">
+                  <h4>模板讓 AI 扮演誰</h4>
+                  <p>資深商業分析顧問。它會用 5 Whys 與 SMART 原則反問你，逼你把需求說清楚 —— 這一關本來就該來回幾輪，一次生成的定義書通常是廢的。</p>
+                </div>
+                <div class="dblock">
+                  <h4>驗收標準：定義書必須有這六段</h4>
+                  <ul>
+                    <li><b>核心問題</b> —— 一句話，且能用數據回答</li>
+                    <li><b>分析目標</b> —— 2–3 個，符合 SMART</li>
+                    <li><b>關鍵指標</b> —— 主要 ＋ 次要</li>
+                    <li><b>初步假設</b> —— 2–3 個，是「可以被推翻」的說法</li>
+                    <li><b>所需數據</b> —— 具體到欄位名</li>
+                    <li><b>預期產出與商業價值</b></li>
+                  </ul>
+                </div>
+              </div>
+              <p class="trap">
+                <b>最常翻車的地方：</b>這一步的產出是後面<b>所有</b>階段的輸入。
+                核心問題含糊（「想了解客戶」），後面每一關都會拿它去發散，
+                最後你會得到一份很長但沒有回答任何事的報告。值得多花時間跟 AI 來回修。
+              </p>
+              <p class="note">
+                <b>問題太大就先拆：</b>如果你連一個「核心問題」都收斂不出來（例如「如何提升 DAU」），
+                先跑 <code>02數據分析/McKinsey分析架構流程.md</code> 用 MECE 拆成議題樹，再逐一走流程。<br>
+                <b>沒有題目可以練：</b><code>00問題定義研究/商業場景模擬案例.md</code> 有三個現成的 MBA 級情境，複製即用。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="00"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 01 ─────────── -->
+        <article class="stage" id="s01">
+          <div class="st-head">
+            <div class="st-code">01</div>
+            <div class="st-title">
+              <h3>資料描述</h3>
+              <span class="tag">兩種模式皆可</span>
+            </div>
+            <p class="st-task">在寫任何分析之前，先把資料的真面目看一遍，產出一份「數據卡」。</p>
+          </div>
+          <div class="io">
+            <span class="chip">原始資料集</span>
+            <span class="arw">→</span>
+            <span class="chip out">數據卡</span>
+            <button class="path" type="button" data-copy="上課用prompt/01資料描述/data_card_prompt.md">01資料描述/data_card_prompt.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：兩種模式的做法、必查的五個品質問題</summary>
+            <div class="st-detail">
+              <div class="dblock only-a">
+                <h4>模式 A ／ 你要做的事</h4>
+                <ul>
+                  <li>先在本機跑 <code>df.head()</code>、<code>df.info()</code>、<code>df.describe()</code>，把輸出<b>整段</b>貼進 <code>CONTEXT</code>。</li>
+                  <li>模板裡有一條「準確性要求」：你沒提供的統計量，AI 必須填「未提供」。</li>
+                  <li><b>驗收方式：</b>拿數據卡跟你貼的原始輸出對一遍。出現你沒貼過的數字 —— 那是編的，要求它改掉。</li>
+                </ul>
+              </div>
+              <div class="dblock only-b">
+                <h4>模式 B ／ 你要做的事</h4>
+                <ul>
+                  <li>只給資料集路徑，加一句「編碼與已知地雷請先查 <code>AGENTS.md</code>」。</li>
+                  <li>要求它把 profiling 程式碼存成 <code>scripts/profile_&lt;資料集&gt;.py</code>，讓數據卡可以被重跑驗證。</li>
+                  <li>數據卡寫到 <code>reports/data_card_&lt;資料集&gt;.md</code>。</li>
+                </ul>
+              </div>
+              <div class="dblock">
+                <h4>不管哪種模式，這五件事都要主動查（沒問題也要明說「已檢查，無此問題」）</h4>
+                <ul>
+                  <li><b>主鍵真的唯一嗎？</b>唯一值數 vs 總行數 —— 差一點就不能當主鍵</li>
+                  <li><b>有恆定欄位嗎？</b>唯一值＝1 的欄位對分析毫無區辨力</li>
+                  <li><b>數值欄有不合理的負值或 0 嗎？</b></li>
+                  <li><b>衍生欄位彼此自洽嗎？</b>總額是否真的等於單價 × 數量</li>
+                  <li><b>日期欄有超出合理範圍的值嗎？</b></li>
+                </ul>
+              </div>
+              <p class="trap">
+                <b>最常翻車的地方：</b>這一關常常會直接推翻階段 00 的假設。
+                發現資料撐不起原本的問題定義時，<b>回頭改定義書</b>，不要硬做 ——
+                硬做的結果就是後面每一關都在替一個資料回答不了的問題找藉口。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="01"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 02 ─────────── -->
+        <article class="stage" id="s02">
+          <div class="st-head">
+            <div class="st-code">02</div>
+            <div class="st-title">
+              <h3>分析策略</h3>
+              <span class="tag">兩種模式皆可</span>
+            </div>
+            <p class="st-task">決定要用哪個商業框架或模型來回答問題，而不是憑手感開始 groupby。</p>
+          </div>
+          <div class="io">
+            <span class="chip">分析問題定義書</span>
+            <span class="arw">→</span>
+            <span class="chip out">分析策略建議</span>
+            <button class="path" type="button" data-copy="上課用prompt/02數據分析/商用模型思維.md">02數據分析/商用模型思維.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：模板重點、驗收標準</summary>
+            <div class="st-detail">
+              <div class="two-col">
+                <div class="dblock">
+                  <h4>它會從哪些選項裡挑</h4>
+                  <p>商業框架（RFM、AIDA、SWOT、BCG 矩陣）與數據模型（分類、分群、迴歸、時間序列）。輸入只有一個：階段 00 的<b>完整</b>定義書。</p>
+                </div>
+                <div class="dblock">
+                  <h4>驗收標準：每個推薦方案要有三段</h4>
+                  <ul>
+                    <li><b>推薦理由</b> —— 為什麼這個框架配這個問題</li>
+                    <li><b>分析步驟</b> —— 具體到「要算哪些欄位、分幾群」</li>
+                    <li><b>預期洞察</b> —— 這方法挖得出什麼</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="note">
+                模板會給你 <b>1–2 個方案</b>。如果它只給一個，主動要求備選方案 ——
+                看到第二個選項，你才有辦法判斷第一個是不是真的比較好。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="02"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 02+ ─────────── -->
+        <article class="stage" id="s02p">
+          <div class="st-head">
+            <div class="st-code">02+</div>
+            <div class="st-title">
+              <h3>執行分析</h3>
+              <span class="tag t-b">只有模式 B</span>
+              <span class="tag">整套流程唯一真的碰數據的一步</span>
+            </div>
+            <p class="st-task">把策略跑成帶著真實數字的洞察，並留下一支能重跑的腳本。</p>
+          </div>
+          <div class="io">
+            <span class="chip">數據卡</span><span class="chip">分析策略建議</span>
+            <span class="arw">→</span>
+            <span class="chip out">已驗證的關鍵洞察</span><span class="chip out">可重跑的腳本</span>
+            <button class="path" type="button" data-copy="上課用prompt/02數據分析/分析執行_AI_Coding.md">02數據分析/分析執行_AI_Coding.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：五個執行步驟、四種自我驗證、拿到產出後你要自己看的三件事</summary>
+            <div class="st-detail">
+              <div class="dblock only-a">
+                <p class="trap">
+                  <b>你現在選的是模式 A —— 這一關做不到。</b>
+                  聊天視窗算不了 52 萬筆資料。這一步必須由你自己在 Jupyter／Excel 裡完成，
+                  再把算出來的結果數字帶到階段 03、04。
+                  <b>絕對不要讓聊天視窗「估一個數字」給你</b> —— 它會編，而且編得很像真的。
+                </p>
+              </div>
+              <div class="dblock">
+                <h4>agent 要照的五個步驟</h4>
+                <ul>
+                  <li><b>先讀契約</b> —— 讀 <code>AGENTS.md</code> 的資料集契約，不要憑欄位名猜語意</li>
+                  <li><b>載入與清洗</b> —— 每一個清洗動作都要印出「剔除幾列、佔原始幾 %」，理由寫在註解裡</li>
+                  <li><b>執行策略</b> —— 中間結果要印出來檢查，不要一路算到底才看</li>
+                  <li><b>自我驗證</b> —— 見右欄</li>
+                  <li><b>落地</b> —— 腳本進 <code>scripts/</code>，洞察摘要進 <code>reports/insights_*.md</code></li>
+                </ul>
+              </div>
+              <div class="dblock">
+                <h4>交付前的四種自我驗證</h4>
+                <ul>
+                  <li><b>分群完整性</b> —— 各群人數加總 ＝ 清洗後總數？有沒有人被重複分到兩群或漏掉？</li>
+                  <li><b>金額加總</b> —— 各部分加總 ＝ 總計？</li>
+                  <li><b>佔比</b> —— 百分比加起來是 100%？不是的話為什麼？</li>
+                  <li><b>交叉驗算</b> —— 抽 2–3 個關鍵數字，用<b>另一種算法</b>再算一次</li>
+                </ul>
+                <p style="margin-top:8px">驗證過程要一併輸出。只說「已驗證」＝沒驗證。</p>
+              </div>
+              <p class="trap">
+                <b>拿到 agent 的產出後，這三件事你自己要看（別全信）：</b><br>
+                ① 資料處理紀錄的<b>剩餘列數</b>合不合理？52 萬變 4 萬，這個分析可能已經失去代表性。<br>
+                ② 每則洞察都<b>指到腳本行號</b>了嗎？沒指的那則，很可能是模型自己補的。<br>
+                ③ 隨便挑一個數字，叫它<b>用完全不同的方法再算一次</b>。對得起來才算數。
+              </p>
+              <p class="note">
+                <b>想看合格的產出長什麼樣：</b>專案裡有一支參考實作
+                <button class="path" type="button" data-copy="python solutions/visualize_retail.py">python solutions/visualize_retail.py</button>
+                它把這一關要求的每件事都做了一遍 —— 清洗紀錄表（每刀剔除幾列、佔比、理由）、
+                樣本影響評估、三項自我驗證，以及產出的圖表。
+                卡住的時候，拿它跟 agent 的產出比對就知道少了什麼。<br>
+                <b>但它同時是「案例一：尋找沈睡的鯨魚」的參考解答。</b>
+                如果你正在做案例一，先自己做完再打開 —— 看懂跟做得出來是兩件事，
+                這個差距在數據分析上比在寫程式上還大。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="02p"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 03 ─────────── -->
+        <article class="stage" id="s03">
+          <div class="st-head">
+            <div class="st-code">03</div>
+            <div class="st-title">
+              <h3>圖表選用</h3>
+              <span class="tag">兩種模式皆可</span>
+            </div>
+            <p class="st-task">替每個洞察挑一種圖，並給它一個「看標題就懂結論」的標題。</p>
+          </div>
+          <div class="io">
+            <span class="chip">關鍵洞察</span><span class="chip">資料結構</span><span class="chip">溝通對象</span>
+            <span class="arw">→</span>
+            <span class="chip out">圖表設計建議</span>
+            <button class="path" type="button" data-copy="上課用prompt/03圖表選用/圖表選型.md">03圖表選用/圖表選型.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：四段驗收標準、兩份速查外掛</summary>
+            <div class="st-detail">
+              <div class="two-col">
+                <div class="dblock">
+                  <h4>驗收標準：建議要有這四段</h4>
+                  <ul>
+                    <li><b>圖表標題</b> —— 直接寫出結論，不是「各產品線銷售額」</li>
+                    <li><b>座標軸建議</b> —— X／Y 各放什麼</li>
+                    <li><b>設計要點</b> —— 排序、顏色強調、註解</li>
+                    <li><b>替代方案</b> —— 一個次選圖表與它的適用場景</li>
+                  </ul>
+                </div>
+                <div class="dblock">
+                  <h4>別忘了填「溝通對象」</h4>
+                  <p>同一個洞察，給行銷副總看和給資料工程師看，該選的圖不一樣。<code>CONTEXT</code> 裡漏掉這欄，你會拿到一張誰都看得懂、但誰都不會行動的圖。</p>
+                </div>
+              </div>
+              <p class="note">
+                <b>兩份外掛：</b>拿不定主意時翻 <code>03圖表選用/圖表類型參考.md</code>（依比較／構成／分佈／關聯四大目的查表，見下方速查）；
+                需要整份報告配色統一時，跑 <code>03圖表選用/色系風格.md</code> 產出 5–8 色的 HEX 色板。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="03"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 04 ─────────── -->
+        <article class="stage" id="s04">
+          <div class="st-head">
+            <div class="st-code">04</div>
+            <div class="st-title">
+              <h3>報告呈現</h3>
+              <span class="tag">兩種模式皆可</span>
+            </div>
+            <p class="st-task">用金字塔原則把洞察組成一份結論先行的報告骨架。</p>
+          </div>
+          <div class="io">
+            <span class="chip">核心洞察摘要</span><span class="chip">目標讀者</span>
+            <span class="arw">→</span>
+            <span class="chip out">報告骨架（數字未驗）</span>
+            <button class="path" type="button" data-copy="上課用prompt/04報告呈現/分析報告製作.md">04報告呈現/分析報告製作.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：報告六段結構、為什麼這一關的產出不能直接交出去</summary>
+            <div class="st-detail">
+              <div class="dblock">
+                <h4>報告骨架的六段</h4>
+                <ul>
+                  <li><b>標題</b> —— 概括性、且看得出立場</li>
+                  <li><b>執行摘要</b> —— 不超過 150 字，給最忙的高階主管看</li>
+                  <li><b>關鍵發現</b> —— 2–3 個分論點，每個都要有數據或圖表標題支撐</li>
+                  <li><b>詳細分析</b> —— 每個關鍵發現的推導過程與輔助證據</li>
+                  <li><b>商業建議</b> —— 2–3 個具體、可衡量、可執行的行動</li>
+                  <li><b>附錄</b> —— 數據來源、清洗過程、分析方法論</li>
+                </ul>
+              </div>
+              <p class="trap">
+                <b>這一關的產出「不是」可以交付的報告。</b>
+                模板的輸出範例裡有「降低 <b>15%</b>」「高 <b>40%</b>」「超過 <b>60%</b>」「低 <b>75%</b>」——
+                <b>這些全部是佔位符，沒有任何一個是算出來的。</b>
+                當 AI 拿你的真實洞察去填這份模板時，它會沿用「一個聽起來很專業的百分比」這個模式。
+                你會拿到一份格式完美、語氣篤定、但數字沒人負責的報告 ——
+                而且因為它讀起來太順，你很難在讀的時候發現。
+                <b>下一關就是專門抓這件事的。</b>
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="04"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── GATE ─────────── -->
+        <article class="stage is-gate" id="sgate">
+          <div class="st-head">
+            <div class="st-code">✓</div>
+            <div class="st-title">
+              <h3>報告數字驗算</h3>
+              <span class="tag t-b">品質關卡 · 交付前必跑</span>
+            </div>
+            <p class="st-task">把報告裡的每一個數字重新從原始資料算一遍，攔截 AI 生成的幻覺數字。</p>
+          </div>
+          <div class="io">
+            <span class="chip">報告骨架</span><span class="chip">原始資料集</span><span class="chip">分析腳本</span>
+            <span class="arw">→</span>
+            <span class="chip out">數字稽核報告 ＋ 修正版</span>
+            <button class="path" type="button" data-copy="上課用prompt/04報告呈現/報告數字驗算.md">04報告呈現/報告數字驗算.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：要抓哪四類陳述、四級判定、為什麼稽核員要跟寫報告的分開</summary>
+            <div class="st-detail">
+              <div class="two-col">
+                <div class="dblock">
+                  <h4>要抓出來的四類量化陳述</h4>
+                  <ul>
+                    <li><b>明確數字與百分比</b> —— 「成長 23%」「共 1,847 位客戶」</li>
+                    <li><b>比較級陳述</b> —— 「A 是 B 的兩倍」「顯著高於」「大幅下降」</li>
+                    <li><b>排名與極值</b> —— 「最高的類別是」「前三名為」</li>
+                    <li><b>預測與目標</b> —— 「預期可降低 15%」</li>
+                  </ul>
+                </div>
+                <div class="dblock">
+                  <h4>四級判定（不打分數，用離散等級）</h4>
+                  <ul>
+                    <li><b>✅ 通過</b> —— 重算結果與報告一致，附上你算出的值</li>
+                    <li><b>⚠️ 有出入</b> —— 方向對但數值不符，附正確值與差異幅度</li>
+                    <li><b>❌ 無法驗證</b> —— 資料裡根本沒有支撐這個陳述的欄位</li>
+                    <li><b>🚨 杜撰</b> —— 資料明確不支持，或預測值被寫成既有事實</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="dblock">
+                <h4>兩個不是隨便訂的設計</h4>
+                <ul>
+                  <li><b>稽核員必須跟寫報告的分開。</b>同一顆模型自己審自己，會對自己的產出評分偏高 ——
+                    所以這份 Prompt 開頭就把角色設成「你的工作不是幫這份報告講得更好聽」。
+                    更進一步：<b>換一家模型</b>來當稽核員，用別家的偏誤抵銷自家的偏誤。</li>
+                  <li><b>判定用離散等級，不用打分數。</b>「這份報告可信度 7 分」不可重現，今天 7 分明天 5 分；
+                    四級判定可以直接加總成通過率。</li>
+                </ul>
+              </div>
+              <p class="trap">
+                <b>重算必須換一種算法。</b>原本用 <code>groupby</code>，就改用樞紐或篩選後直接加總。
+                算法不同但結果相同，才算通過。用同一段程式碼再跑一次不叫驗算。<br>
+                <b>而且：</b>「這個數字看起來合理」不可以當作通過的理由。沒實際算過就是 ❌。
+              </p>
+              <p class="note">
+                <b>給講師：</b>這一關最好在課堂上現場示範一次。先讓學員用階段 04 產一份報告 —— 讀起來會非常專業；
+                再跑這份驗算，通常會抓到 2~4 個站不住腳的數字。
+                那個「原來剛剛那份報告有一半的數字是編的」的瞬間，比講十遍「AI 會產生幻覺」都有用。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="gate"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 04+ ─────────── -->
+        <article class="stage" id="s04p">
+          <div class="st-head">
+            <div class="st-code">04+</div>
+            <div class="st-title">
+              <h3>儀表板藍圖</h3>
+              <span class="tag t-opt">選配 · 從一次性分析昇華成持續監控</span>
+            </div>
+            <p class="st-task">把「已驗證的報告」轉成一份以用戶決策場景為中心的儀表板設計藍圖。</p>
+          </div>
+          <div class="io">
+            <span class="chip">數字已驗證的報告</span><span class="chip">核心目標與用戶</span>
+            <span class="arw">→</span>
+            <span class="chip out">儀表板設計藍圖</span>
+            <button class="path" type="button" data-copy="上課用prompt/04報告呈現/Dashboard儀表板設計規劃.md">04報告呈現/Dashboard儀表板設計規劃.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：藍圖四段、F 型佈局的四步互動流程</summary>
+            <div class="st-detail">
+              <div class="two-col">
+                <div class="dblock">
+                  <h4>藍圖必須有的四段</h4>
+                  <ul>
+                    <li><b>類型與策略</b> —— 戰略型／分析型／操作型，並定義 North Star Metric</li>
+                    <li><b>佈局與 UX</b> —— F 型佈局：篩選器在頂、KPI 在左上、主圖在左側主體、明細在右</li>
+                    <li><b>組件設計</b> —— 報告的每個「關鍵發現」轉成一個組件，寫成表格</li>
+                    <li><b>篩選器與連動</b> —— 全局篩選器 ＋ 組件間的 cross-filtering</li>
+                  </ul>
+                </div>
+                <div class="dblock">
+                  <h4>設計時想著這條動線</h4>
+                  <ul>
+                    <li><b>概覽</b> —— 進來先在左上角看到核心指標達不達標</li>
+                    <li><b>發現</b> —— 在主體趨勢圖上看到某個異常</li>
+                    <li><b>下鑽</b> —— 點那個異常點，整個儀表板連動刷新</li>
+                    <li><b>行動</b> —— 從明細列表點進去，指派給人處理</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="note">
+                <b>輸入必須是「已驗證」的報告。</b>藍圖會把報告裡的每個數字變成一個會每天自動重算的組件 ——
+                如果來源數字是編的，你等於是把一個錯誤自動化了。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="04p"> 這一關我做完了</label></div>
+        </article>
+
+        <!-- ─────────── 05 ─────────── -->
+        <article class="stage" id="s05">
+          <div class="st-head">
+            <div class="st-code">05</div>
+            <div class="st-title">
+              <h3>儀表板上線</h3>
+              <span class="tag t-opt">選配 · 會推上公開網路</span>
+            </div>
+            <p class="st-task">把藍圖生成成可部署的 Streamlit 應用，並照 SOP 上線。</p>
+          </div>
+          <div class="io">
+            <span class="chip">儀表板設計藍圖</span><span class="chip">精簡後的資料集</span>
+            <span class="arw">→</span>
+            <span class="chip out">app.py ＋ requirements.txt</span>
+            <button class="path" type="button" data-copy="上課用prompt/05儀表板上線_streamlit/Streamlit_App_Generator_Prompt.md">05儀表板上線_streamlit/Streamlit_App_Generator_Prompt.md</button>
+            <button class="path" type="button" data-copy="上課用prompt/05儀表板上線_streamlit/Streamlit_Cloud_Deployment_SOP.md">…/Streamlit_Cloud_Deployment_SOP.md</button>
+          </div>
+          <details class="st-body">
+            <summary>展開：步驟 0 資料瘦身、程式碼要求、推上去之前的檢查清單</summary>
+            <div class="st-detail">
+              <p class="trap">
+                <b>步驟 0：先讓資料瘦身，別跳過。</b>
+                <code>資料集/Online Retail/*.csv</code> 各約 42MB，直接推上部署倉庫會很吃力
+                （GitHub 單檔上限 100MB，Streamlit Cloud 免費額度記憶體也有限）。
+                先寫一支聚合腳本放到 <code>scripts/</code>，把儀表板真正需要的欄位與粒度算好再輸出。
+                <b>聚合後的總營收、總筆數要對得上原始資料</b> —— 這等同一次小型的數字驗算。
+              </p>
+              <div class="two-col">
+                <div class="dblock">
+                  <h4>模板對程式碼的硬性要求</h4>
+                  <ul>
+                    <li>資料載入函式加 <code>@st.cache_data</code></li>
+                    <li>圖表<b>一律</b>用 <code>plotly.express</code></li>
+                    <li>每個組件封裝成獨立函式</li>
+                    <li>用 <code>st.set_page_config</code> ＋ <code>st.sidebar</code>／<code>st.columns</code> 實現藍圖佈局</li>
+                    <li>同步產出對應的 <code>requirements.txt</code></li>
+                  </ul>
+                </div>
+                <div class="dblock">
+                  <h4>推上去之前逐項打勾（推出去就收不回來）</h4>
+                  <ul>
+                    <li>沒有公司實際資料、個資、客戶姓名／電話／Email</li>
+                    <li>沒有 <code>.env</code>、API key、連線字串、密碼</li>
+                    <li>CSV 是步驟 0 的精簡版，不是 42MB 原始檔</li>
+                    <li>本地 <code>streamlit run app.py</code> 跑得起來，篩選器與圖表都正常</li>
+                    <li><code>requirements.txt</code> 與 <code>app.py</code> 實際 import 一致</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="trap">
+                <b>部署會把整個資料夾推上公開 GitHub 倉庫，任何人都看得到你的 CSV。</b>
+                只用課程練習資料集。快取與 fork 都可能留存，刪掉原倉庫也救不回來。
+              </p>
+              <p class="note">
+                <b>模式 B 的捷徑：</b>直接叫 agent「依這份藍圖，從 <code>資料集/…</code> 產出部署用的精簡 CSV，
+                腳本放 <code>scripts/</code>，並驗證聚合前後總額一致」。它會連驗算一起做掉。
+              </p>
+            </div>
+          </details>
+          <div class="done-row"><label><input type="checkbox" data-gate="05"> 這一關我做完了</label></div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════ 走查 ══════════════════ -->
+    <section id="walk">
+      <div class="sec-head">
+        <div class="sec-kicker">Layer 3 ／ 看一次完整的</div>
+        <h2>完整走查：尋找沈睡的鯨魚</h2>
+        <p>
+          情境取自 <code>00問題定義研究/商業場景模擬案例.md</code> 案例一。
+          你是電商平台的 CRM 經理，想找出「曾經買很多、但最近消失的 VIP」。
+          資料集：<code>資料集/Online Retail/online_retail_09_10.csv</code>（<span class="num">525,461</span> 筆交易）。
+        </p>
+      </div>
+
+      <ol class="tl">
+        <li data-n="1">
+          <div class="who">階段 00 ／ 問題定義</div>
+          <h3>把「金雞母」翻譯成 R、F、M</h3>
+          <p>打開 <code>抽象需求轉換.md</code>，把案例一的 <code>CONTEXT</code>（角色＝CRM 經理、需求＝「不知道誰是金雞母…想用 RFM 分群」）填進去。</p>
+          <div class="outcome">
+            <div class="lab">AI 產出：分析問題定義書</div>
+            <ul>
+              <li><b>核心問題</b>：哪些高價值客戶已進入沈睡狀態，其規模與營收貢獻為何？</li>
+              <li><b>關鍵指標</b>：R／F／M 三分位、沈睡 VIP 人數、營收占比</li>
+              <li><b>初步假設</b>：R &gt; 90 天且歷史 F 值居前 20% 的客戶，是最值得召回的一群</li>
+              <li><b>所需數據</b>：<code>CustomerID</code>、<code>InvoiceNo</code>、<code>InvoiceDate</code>、<code>Quantity</code>、<code>UnitPrice</code></li>
+            </ul>
+          </div>
+        </li>
+
+        <li data-n="2">
+          <div class="who">階段 01 ／ 資料描述</div>
+          <h3>第一次看到資料的真面目</h3>
+          <p>模式 A 先跑 <code>df.info()</code> 貼進去；模式 B 直接給路徑。<strong>然後你會發現原本的假設有麻煩了：</strong></p>
+          <div class="outcome">
+            <div class="lab">數據卡實測</div>
+            <ul>
+              <li><code>CustomerID</code> 有 <span class="num">20.54%</span> 缺失 —— 這些交易做不了 RFM，必須先決定怎麼處理</li>
+              <li><span class="num">10,206</span> 筆 <code>InvoiceNo</code> 以 <code>C</code> 開頭的退貨單，<code>Quantity</code> 為負值</li>
+              <li><span class="num">3,690</span> 筆 <code>UnitPrice &lt;= 0</code> 的異常記錄</li>
+            </ul>
+          </div>
+          <p style="margin-top:8px">這一步常常會直接推翻步驟 1 的假設。資料撐不起原本的問題定義時，<strong>回頭改定義書</strong>，不要硬做。</p>
+        </li>
+
+        <li data-n="3">
+          <div class="who">階段 02 ／ 分析策略</div>
+          <h3>為什麼是 RFM，而不是別的</h3>
+          <p>把步驟 1 的完整定義書貼進 <code>商用模型思維.md</code>。產出會說明為什麼選 RFM、具體要算哪些欄位、分幾群、預期能挖出什麼，並附一個備選方案（例如邏輯迴歸流失預測）供你比較。</p>
+        </li>
+
+        <li data-n="4" class="hot">
+          <div class="who">階段 02+ ／ 執行分析　★ 真的去跑數字</div>
+          <h3>agent 讀檔、清洗、分群、驗證</h3>
+          <p>把步驟 2 的數據卡與步驟 3 的策略一起交給 AI coding agent。它會<strong>實際寫出並執行</strong> Python —— 讀檔、依數據卡的發現做清洗（剔除 <code>C</code> 開頭退貨、剔除 <code>CustomerID</code> 缺失、剔除非正價量）、計算 RFM、分群、輸出統計。</p>
+          <div class="outcome">
+            <div class="lab">產出形狀（數字由腳本實際算出，不是這裡寫死的）</div>
+            <ul>
+              <li>「沈睡 VIP」共 N 人，占總客戶數 X%，歷史貢獻營收 Y%</li>
+              <li>這群人的平均 Recency 為 Z 天，遠高於活躍客戶</li>
+              <li>每則洞察都要指得出「這是 <code>scripts/xxx.py</code> 第幾行算的」</li>
+            </ul>
+          </div>
+          <p style="margin-top:8px">
+            <strong>這一步的成品專案裡就有 —— 但它是這個案例的解答，先自己做完再開。</strong>
+            <code>solutions/visualize_retail.py</code> 做的正是同一套 RFM 分群（差別在它合併了兩個年度檔）。
+            執行後你會看到「做對了」該長什麼樣 —— 清洗紀錄表、樣本影響評估（保留 <span class="num">75.4%</span>）、
+            三項自我驗證，以及兩張圖。對照時只問三個問題：<b>每步清洗的影響列數與佔比印出來了嗎？
+            產圖前驗過數字了嗎？從乾淨環境重跑會得到一模一樣的結果嗎？</b>
+          </p>
+        </li>
+
+        <li data-n="5">
+          <div class="who">階段 03 ／ 圖表選用</div>
+          <h3>替洞察挑圖，並先想好講給誰聽</h3>
+          <p>把步驟 4 的洞察、資料結構、溝通對象（例如：行銷副總）填進 <code>圖表選型.md</code>。產出是主推圖表類型、能直接點出結論的標題、座標軸配置、排序與配色要點，以及一個替代方案。需要整份報告配色統一時，再跑一次 <code>色系風格.md</code>。</p>
+        </li>
+
+        <li data-n="6" class="hot">
+          <div class="who">階段 04 ＋ 品質關卡</div>
+          <h3>生成報告 —— 然後立刻懷疑它</h3>
+          <p>用 <code>分析報告製作.md</code> 產出結論先行的報告骨架（執行摘要、關鍵發現、商業建議）。<strong>然後必做的下一動作：</strong>跑 <code>報告數字驗算.md</code>。</p>
+          <p>模板裡的範例數字（「降低 15%」「高 40%」）全部是佔位符，AI 在填空時很容易順手保留，或改寫成另一個同樣沒有根據的數字。這一關會把每個數字重新從原始資料、用不同的算法算一遍。</p>
+        </li>
+
+        <li data-n="7">
+          <div class="who">階段 04+ ／ 儀表板藍圖</div>
+          <h3>意識到這件事該持續監控，不該每季手動重跑</h3>
+          <p>打開 <code>Dashboard儀表板設計規劃.md</code>，填寫核心目標（「幫助 CRM 團隊即時監控高價值客戶的沈睡風險，並快速圈出可召回名單」）、主要用戶（CRM 經理、行銷企劃），以及步驟 6 <strong>驗算過的</strong>報告骨架。</p>
+          <div class="outcome">
+            <div class="lab">AI 產出：儀表板設計藍圖</div>
+            <ul>
+              <li>定義儀表板類型（操作型）與 North Star Metric</li>
+              <li>F 型佈局</li>
+              <li>把報告的每個「關鍵發現」轉成具體圖表組件與連動篩選關係</li>
+            </ul>
+          </div>
+        </li>
+
+        <li data-n="8">
+          <div class="who">階段 05 ／ 儀表板上線</div>
+          <h3>先瘦身，再部署</h3>
+          <p>Online Retail 原始檔各約 42MB，<strong>不要直接拿去部署</strong>。先寫一支聚合腳本存到 <code>scripts/</code>，輸出一份幾 MB 的精簡 CSV，並驗證聚合前後總額一致。接著把藍圖與精簡資料集的欄位描述填進 <code>Streamlit_App_Generator_Prompt.md</code>，拿到 <code>app.py</code> 與 <code>requirements.txt</code>，照 SOP 做本地測試與雲端部署。</p>
+          <p class="trap" style="margin-top:8px">部署會把資料推上<b>公開</b> GitHub 倉庫。只用課程練習資料集，絕對不要放公司實際資料或任何個資。</p>
+        </li>
+      </ol>
+
+      <p class="note" style="margin-top:26px">
+        <b>走完這八步，你手上有三樣東西：</b>一次深入的專項分析、一份<b>數字經過驗證</b>的靜態報告、
+        以及一個長期可用的動態監控儀表板 —— 一次性洞察被轉成了持續的業務價值。
+      </p>
+    </section>
+
+    <!-- ══════════════════ 輔助文件 ══════════════════ -->
+    <section id="extras">
+      <div class="sec-head">
+        <div class="sec-kicker">外掛 ／ 不是流程階段</div>
+        <h2>六份輔助速查</h2>
+        <p>這些不在主線上，是卡住的時候才翻的。硬要按順序全部跑一遍只會拖慢流程。</p>
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <div class="when">階段 00 · 沒題目可練</div>
+          <h3>商業場景模擬案例</h3>
+          <p>三個基於 Online Retail 真實資料集的 MBA 級商業情境（沈睡的鯨魚／倉庫大掃除／誰在一直退貨），<code>CONTEXT</code> 已經寫好，複製即用。</p>
+          <button class="path" type="button" data-copy="上課用prompt/00問題定義研究/商業場景模擬案例.md">00問題定義研究/商業場景模擬案例.md</button>
+        </div>
+        <div class="card">
+          <div class="when">階段 00 · 問題太大</div>
+          <h3>McKinsey 議題樹拆解</h3>
+          <p>當核心問題大到收斂不了（「如何提升 DAU」），先用 MECE 拆成 2–3 層議題樹，葉節點標上具體的數據分析任務，再逐一走流程。</p>
+          <button class="path" type="button" data-copy="上課用prompt/02數據分析/McKinsey分析架構流程.md">02數據分析/McKinsey分析架構流程.md</button>
+        </div>
+        <div class="card">
+          <div class="when">階段 03 · 不知道選哪種圖</div>
+          <h3>圖表類型速查</h3>
+          <p>依「比較／構成／分佈／關聯」四大目的查表。選圖之前先問自己一句：<b>我想讓觀眾從數據中看到什麼？</b></p>
+          <button class="path" type="button" data-copy="上課用prompt/03圖表選用/圖表類型參考.md">03圖表選用/圖表類型參考.md</button>
+        </div>
+        <div class="card">
+          <div class="when">階段 03 · 報告收尾</div>
+          <h3>色系風格</h3>
+          <p>產出 5–8 色的 HEX 色板，含用途建議、設計理念與各圖表類型的套用方式。整份報告或儀表板需要視覺統一時再跑。</p>
+          <button class="path" type="button" data-copy="上課用prompt/03圖表選用/色系風格.md">03圖表選用/色系風格.md</button>
+        </div>
+        <div class="card">
+          <div class="when">階段 04 · 交付前必跑</div>
+          <h3>報告數字驗算</h3>
+          <p>唯一一份「不幫你講得更好聽」的模板。逐項重算報告裡的每個量化陳述，四級判定，並輸出修正版報告。</p>
+          <button class="path" type="button" data-copy="上課用prompt/04報告呈現/報告數字驗算.md">04報告呈現/報告數字驗算.md</button>
+        </div>
+        <div class="card">
+          <div class="when">階段 05 · 產出程式碼之後</div>
+          <h3>Streamlit Cloud 部署 SOP</h3>
+          <p>從資料瘦身、建虛擬環境、本地測試，到 GitHub 推送與 Streamlit Cloud 部署的逐步流程，含推上去之前的安全檢查清單。</p>
+          <button class="path" type="button" data-copy="上課用prompt/05儀表板上線_streamlit/Streamlit_Cloud_Deployment_SOP.md">05儀表板上線_streamlit/Streamlit_Cloud_Deployment_SOP.md</button>
+        </div>
+      </div>
+
+      <h3 style="margin:36px 0 4px; font-size:1.12rem">選圖之前先確定目的</h3>
+      <p style="color:var(--ink-2); font-size:.9rem; margin-bottom:14px">
+        圖表類型參考的四大分類 —— 目的錯了，選哪種圖都不會對。
+      </p>
+      <div class="quad">
+        <div>
+          <h4>比較 Comparison</h4>
+          <p class="q">誰比誰多？</p>
+          <ul>
+            <li><b>柱狀圖</b> —— 分類少於 10 個</li>
+            <li><b>條形圖</b> —— 標籤太長或分類超過 10 個</li>
+            <li><b>折線圖</b> —— 連續時間序列的趨勢</li>
+            <li><b>分組柱狀圖</b>、<b>雷達圖</b>、<b>子彈圖</b></li>
+          </ul>
+        </div>
+        <div>
+          <h4>構成 Composition</h4>
+          <p class="q">整體是由什麼組成的？</p>
+          <ul>
+            <li><b>餅圖</b> —— 謹慎使用！僅限少於 5 個分類</li>
+            <li><b>堆疊柱狀圖</b> —— 比總量的同時看內部組成</li>
+            <li><b>100% 堆疊柱狀圖</b> —— 只比相對比例</li>
+            <li><b>樹狀圖</b>、<b>瀑布圖</b></li>
+          </ul>
+        </div>
+        <div>
+          <h4>分佈 Distribution</h4>
+          <p class="q">數據長什麼形狀？異常值在哪？</p>
+          <ul>
+            <li><b>直方圖</b> —— 單一連續變量的頻率分布</li>
+            <li><b>箱形圖</b> —— 比較多組分布並抓異常值</li>
+            <li><b>密度圖</b>、<b>散點圖</b>、<b>熱力圖</b></li>
+          </ul>
+        </div>
+        <div>
+          <h4>關聯 Relationship</h4>
+          <p class="q">兩件事之間有沒有關係？</p>
+          <ul>
+            <li><b>散點圖</b> —— 兩個連續變量的關係</li>
+            <li><b>氣泡圖</b> —— 用大小塞進第三個變量</li>
+            <li><b>組合圖</b> —— 兩個不同量綱（銷量 vs 利潤率）</li>
+            <li><b>桑基圖</b> —— 流程或資源的流動</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="margin:36px 0 14px; font-size:1.12rem">這套流程可以套在哪些題目上</h3>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th>應用場景</th><th>業務目標</th><th>怎麼套武器庫</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>用戶流失分析</td>
+              <td>降低高價值用戶流失率，提升 LTV</td>
+              <td>從「感覺流失變高了」的模糊問題，一路走到「針對高風險用戶推出個人化挽留活動」的具體建議</td>
+            </tr>
+            <tr>
+              <td>行銷活動歸因</td>
+              <td>評估「雙 12」活動成效，優化下次預算分配</td>
+              <td>定義「成效」的具體指標，選擇歸因模型，用圖表呈現 ROI，產出預算調整報告</td>
+            </tr>
+            <tr>
+              <td>產品銷售優化</td>
+              <td>找出「叫好不叫座」的產品，調整定價或庫存</td>
+              <td>用 ABC 分析或波士頓矩陣把產品分層，在報告中提出產品組合優化建議</td>
+            </tr>
+            <tr>
+              <td>新功能採用率</td>
+              <td>掌握新功能上線後的使用情況與滲透率</td>
+              <td>定義「採用率」指標，比較使用／未使用者的用戶畫像差異，建議產品優化方向</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════ 鐵律 ══════════════════ -->
+    <section id="laws">
+      <div class="sec-head">
+        <div class="sec-kicker">Non-negotiable</div>
+        <h2>四條鐵律</h2>
+        <p>違反這幾條的產出一律視為未完成 —— 不管它讀起來多順、格式多完美。</p>
+      </div>
+
+      <div class="laws">
+        <div class="laws-head">
+          <h3>數字沒人負責，這份分析就不算做完</h3>
+          <span>出自專案 <code>AGENTS.md</code> 第 4 節「分析工作鐵律」</span>
+        </div>
+        <ol>
+          <li>
+            <b>數字不得杜撰。</b>
+            <span>報告、數據卡、洞察裡出現的每一個數字，都必須是<b>實際跑程式碼算出來</b>的。不准從資料集的公開描述、記憶、或「常見的量級」推估。不確定就直接說不確定，或去把它算出來 —— <b>寫一個看起來合理的數字是最嚴重的錯誤</b>。</span>
+          </li>
+          <li>
+            <b>每個結論都要可重跑。</b>
+            <span>分析程式碼存成檔案，不要只在對話裡跑完就丟。腳本要能從乾淨環境重跑並得到相同結果：不依賴手動步驟、不依賴已存在的中間檔。報告中的關鍵數字，要能指出是哪支腳本的哪一段算出來的。</span>
+          </li>
+          <li>
+            <b>清洗決策要寫出來，不要默默做掉。</b>
+            <span>每一次 <code>dropna</code>／過濾／填補，都要記錄剔除了多少列（絕對數 ＋ 佔比）、為什麼、對結論有什麼影響。<b>樣本從 52 萬掉到 40 萬卻沒人提，是分析報告最常見的隱形謊言。</b></span>
+          </li>
+          <li>
+            <b>統計主張要誠實。</b>
+            <span>相關不等於因果 —— 用「與 X 相關」，不要寫「X 導致 Y」。小樣本分群要標註每群的 n（1,030 列切 6×7 個交叉組合後，每格可能只剩個位數）。報漲跌幅時同時給基期絕對值 —— 「成長 200%」從 2 變 6 沒有意義。</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="grid3" style="margin-top:18px">
+        <div class="card">
+          <div class="when">流程紀律</div>
+          <h3>不要跳階段</h3>
+          <p>每個階段的 <code>CONTEXT</code> 都預期收到前一階段的完整產出。跳過會讓後面的模板缺乏依據 —— 而缺乏依據的模型會開始編。</p>
+        </div>
+        <div class="card">
+          <div class="when">產出慣例</div>
+          <h3>東西放在固定的三個資料夾</h3>
+          <p><code>reports/</code> 放數據卡、洞察摘要、報告、驗算紀錄；<code>scripts/</code> 放可重跑的腳本；<code>charts/</code> 放圖檔。命名全小寫、底線分隔、帶上資料集名稱。<code>solutions/</code> 是參考解答，不要往裡面寫東西。</p>
+        </div>
+        <div class="card">
+          <div class="when">資料紀律</div>
+          <h3>資料集一律唯讀</h3>
+          <p>不要修改 <code>資料集/</code> 底下的原始檔案。清洗後的資料另存到輸出路徑，原始資料保持乾淨 —— 這是「可重跑」的前提。</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>
+      本頁整合自專案內兩份文件，內容以原檔為單一真相源；模板本文都在各自的 <code>.md</code> 檔裡，本頁只做導覽。
+    </p>
+    <div class="srcs">
+      <button class="path" type="button" data-copy="上課用prompt/分析師武器庫.md">上課用prompt/分析師武器庫.md</button>
+      <button class="path" type="button" data-copy="上課用prompt/分析師武器庫_使用手冊.md">上課用prompt/分析師武器庫_使用手冊.md</button>
+      <button class="path" type="button" data-copy="AGENTS.md">AGENTS.md（資料集契約與分析鐵律）</button>
+    </div>
+    <p>
+      環境還沒裝好？Antigravity 的安裝與設定見 <code>docs/antigravity/INSTALL.md</code> 與 <code>docs/antigravity/CLI_GUIDE.md</code>。
+    </p>
+  </div>
+</footer>
+
+</div><!-- /.page -->
+
+<script>
+(function () {
+  "use strict";
+
+  var page = document.querySelector(".page");
+
+  /* ---------- 模式 A / B 切換 ---------- */
+  var modeBtns = document.querySelectorAll(".mode-switch button");
+  function setMode(m) {
+    page.setAttribute("data-mode", m);
+    modeBtns.forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.mode === m));
+    });
+    try { localStorage.setItem("wpn-mode", m); } catch (e) {}
+  }
+  modeBtns.forEach(function (b) {
+    b.addEventListener("click", function () { setMode(b.dataset.mode); });
+  });
+  try {
+    var savedMode = localStorage.getItem("wpn-mode");
+    if (savedMode === "a" || savedMode === "b") setMode(savedMode);
+  } catch (e) {}
+
+  /* ---------- 進度追蹤 ---------- */
+  var boxes = Array.prototype.slice.call(document.querySelectorAll(".done-row input[type=checkbox]"));
+  var pips = document.getElementById("pips");
+  var pgN = document.getElementById("pg-n");
+  if (pips) {
+    boxes.forEach(function () {
+      var i = document.createElement("i");
+      pips.appendChild(i);
+    });
+  }
+  function readState() {
+    try { return JSON.parse(localStorage.getItem("wpn-done") || "{}") || {}; }
+    catch (e) { return {}; }
+  }
+  function render() {
+    var n = 0;
+    boxes.forEach(function (b, i) {
+      if (b.checked) n++;
+      if (pips && pips.children[i]) pips.children[i].classList.toggle("on", b.checked);
+    });
+    if (pgN) pgN.textContent = String(n);
+  }
+  var state = readState();
+  boxes.forEach(function (b) {
+    if (state[b.dataset.gate]) b.checked = true;
+    b.addEventListener("change", function () {
+      var s = readState();
+      s[b.dataset.gate] = b.checked;
+      try { localStorage.setItem("wpn-done", JSON.stringify(s)); } catch (e) {}
+      render();
+    });
+  });
+  render();
+
+  var reset = document.getElementById("pg-reset");
+  if (reset) {
+    reset.addEventListener("click", function () {
+      boxes.forEach(function (b) { b.checked = false; });
+      try { localStorage.removeItem("wpn-done"); } catch (e) {}
+      render();
+    });
+  }
+
+  /* ---------- 路徑複製 ---------- */
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement("textarea");
+      ta.value = t;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy") ? resolve() : reject(); }
+      catch (e) { reject(e); }
+      document.body.removeChild(ta);
+    });
+  }
+  document.querySelectorAll(".path").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      copyText(btn.dataset.copy).then(function () {
+        btn.classList.add("copied");
+        setTimeout(function () { btn.classList.remove("copied"); }, 1400);
+      }).catch(function () {});
+    });
+  });
+
+  /* ---------- 導軌 scroll-spy ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#rail-list a"));
+  var targets = links
+    .map(function (a) { return document.querySelector(a.getAttribute("href")); })
+    .filter(Boolean);
+
+  if ("IntersectionObserver" in window && targets.length) {
+    var visible = {};
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+      var bestId = null, best = -1;
+      targets.forEach(function (t) {
+        var v = visible[t.id] || 0;
+        if (v > best) { best = v; bestId = t.id; }
+      });
+      if (bestId && best > 0) {
+        links.forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + bestId);
+        });
+      }
+    }, { rootMargin: "-15% 0px -60% 0px", threshold: [0, 0.15, 0.4, 0.8] });
+    targets.forEach(function (t) { io.observe(t); });
+  }
+})();
+</script>
