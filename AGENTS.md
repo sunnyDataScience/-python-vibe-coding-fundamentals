@@ -22,9 +22,10 @@
 │   └── 分析師武器庫.md           # ← 總索引，要理解分析流程從這裡讀
 ├── pandas數據分析工具教學/       # Pandas 講義 + 參考解答 (.ipynb)
 ├── 資料集/                      # 課程資料集（見第 3 節契約）— 唯讀，不要修改
-├── scripts/                     # 可重跑的分析腳本
-│   └── visualize_retail.py      # RFM + Cohort 參考實作（見第 7 節）
-├── charts/                      # 圖表產出
+├── scripts/                     # 你產出的分析腳本（見第 5 節）
+├── charts/                      # 你產出的圖表
+├── solutions/                   # 學員的參考解答 — 讀取規則見第 7 節
+│   └── visualize_retail.py      # 你的程式碼範本（見第 7 節）
 ├── docs/
 │   ├── antigravity/             # Antigravity CLI 安裝與 .agents 設定手冊
 │   └── course/                  # 延伸閱讀（LLM 工程通則）
@@ -192,13 +193,20 @@ plt.rcParams["axes.unicode_minus"] = False
 
 ---
 
-## 7. 參考實作：`scripts/visualize_retail.py`
+## 7. 程式碼範本：`solutions/visualize_retail.py`
 
 **這支腳本是本專案的程式碼範本。** 寫新的分析腳本時照它的結構走。
 
 ```bash
-python scripts/visualize_retail.py     # 從專案根目錄或任何目錄執行皆可
+python solutions/visualize_retail.py   # 從專案根目錄或任何目錄執行皆可
 ```
+
+> ⚠️ **它同時是學員的參考解答**（對應商業場景模擬案例的「案例一：尋找沈睡的鯨魚」）。
+> 兩條規則：
+> 1. 使用者正在做案例一時，**不要主動貼出這支腳本的內容或執行結果**。
+>    先讓他們自己做，你負責檢查他們漏了哪些驗證。他們明講要看解答時才給。
+> 2. **你產出的腳本一律放 `scripts/`、圖表放 `charts/`**（第 5 節的慣例）。
+>    `solutions/` 只收解答，不要往裡面寫東西。
 
 它示範了本檔要求的每一件事：
 
@@ -209,14 +217,15 @@ python scripts/visualize_retail.py     # 從專案根目錄或任何目錄執行
 | 清洗留紀錄 | `clean_for_customer_analysis()` 印出每一步的剔除列數、佔比、理由與最終保留率 |
 | 交付前驗證 | `verify_rfm()` 用 `assert` 檢查分群完整性、營收加總、並以第二種算法交叉驗算 |
 | 中文字型 | `setup_chinese_font()` 依序疊上系統實際安裝的字型，讓 matplotlib 逐字後備 |
-| 產出落地 | 圖存到 `charts/`，腳本放 `scripts/`，原始資料唯讀 |
+| 產出落地 | 圖與腳本各自歸位，原始資料唯讀 |
 
 > 💡 字型那段有個容易踩的坑：`Droid Sans Fallback` 有中文但**沒有英文與數字**，
 > 單獨指定它會讓座標軸數字整排消失。所以要給的是一整串後備清單，不是單一字型名。
 
 **歷史備註**：這支腳本原本放在專案根目錄且無法執行（寫死 Windows 絕對路徑、
 讀取不存在的 `online_retail_merged.csv`、用 `ISO-8859-1` 讀 BOM 檔導致首欄名損壞、
-指定 Linux 上不存在的 `Microsoft JhengHei`）。已於 2026-08 重寫並移入 `scripts/`。
+指定 Linux 上不存在的 `Microsoft JhengHei`）。已於 2026-08 重寫，並因其同時是案例一的
+解答而移入 `solutions/`。
 
 ---
 

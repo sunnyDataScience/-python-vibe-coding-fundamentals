@@ -1,19 +1,26 @@
 """Online Retail 資料集：RFM 分群 + Cohort 留存分析視覺化。
 
-這是本專案「AI coding 協助分析」的參考實作，示範一條完整的路徑：
-    資料集/ → scripts/ → charts/
+⚠️ 這是【參考解答】—— 對應商業場景模擬案例的「案例一：尋找沈睡的鯨魚」。
+   建議先自己走完階段 02+（`上課用prompt/02數據分析/分析執行_AI_Coding.md`），
+   卡住或做完之後再回來對照。詳見 solutions/README.md。
+
+它同時是本專案的**程式碼範本**，示範一條完整的路徑：
+    資料集/ → 分析腳本 → 圖表產出
 
 執行方式（在專案根目錄）：
-    python scripts/visualize_retail.py
+    python solutions/visualize_retail.py
 
 產出：
-    charts/rfm_bubble_chart.png   VIP 流失風險分佈圖
-    charts/cohort_heatmap.png     同類群組留存率熱力圖
+    solutions/charts/rfm_bubble_chart.png   VIP 流失風險分佈圖
+    solutions/charts/cohort_heatmap.png     同類群組留存率熱力圖
 
 本腳本刻意遵守 AGENTS.md 第 4 節的分析鐵律：
     - 每一步清洗都印出影響列數與佔比（不做隱形的資料裁切）
     - 產圖前先自我驗證（分群完整性、金額加總）
     - 路徑一律相對於專案根目錄，可從任何工作目錄執行
+
+注意：你自己寫的分析腳本應該放在 `scripts/`、圖表存到 `charts/`
+（AGENTS.md 第 5 節的慣例）。本檔放在 solutions/ 是因為它是解答，不是通例。
 """
 
 from pathlib import Path
@@ -28,9 +35,10 @@ import pandas as pd
 import seaborn as sns
 
 # --- 路徑設定：一律從腳本位置往上推導專案根目錄，不寫死絕對路徑 ---
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_ROOT / "資料集" / "Online Retail"
-CHART_DIR = PROJECT_ROOT / "charts"
+CHART_DIR = SCRIPT_DIR / "charts"   # 解答的圖表跟解答放一起，不污染學員的 charts/
 
 # 兩個年度檔在 2010-12-01~12-09 完全重複，合併時用這組欄位去重（見 AGENTS.md 第 3.1 節）
 DEDUP_KEYS = ["InvoiceNo", "StockCode", "Quantity", "InvoiceDate", "UnitPrice"]
